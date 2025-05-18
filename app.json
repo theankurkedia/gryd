@@ -9,11 +9,12 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ankurkedia.gryd"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon.png",
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.ankurkedia.gryd"
@@ -34,7 +35,9 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      ["expo-notifications"]
+      [
+        "expo-notifications"
+      ]
     ],
     "experiments": {
       "typedRoutes": true
