@@ -13,7 +13,8 @@ A habit tracking app
   - [x] color
   - [x] icon
 - [x] Add reminders
-- [ ] Release for Android / Web PWA
+- [x] Release build for Android / Web PWA
+- [ ] Add empty illustration and guide on how to create the first habit
 - [ ] Add frequency options
 - [ ] Add option to mark past date
 - [ ] Add screen widgets
