@@ -1,4 +1,3 @@
-import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import {
   Platform,
@@ -53,7 +52,6 @@ export default function App() {
   return (
     <GestureHandlerRootView>
       <SafeAreaView style={styles.container}>
-        <StatusBar style="auto" />
         {isInitialising ? <CalendarSkeleton /> : null}
         <AppBar onAddHabit={openAddEditDialog} />
         <ScrollView contentContainerStyle={styles.scrollView}>
