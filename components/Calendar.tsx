@@ -113,14 +113,20 @@ export function Calendar({ habit, onClick }: Props) {
 
   const renderMonthLabels = () => {
     const months: { [key: string]: number } = {};
-
+    const currentMonthKey = new Date().toLocaleString('default', {
+      month: 'short',
+    });
     calendarData.forEach((day, index) => {
       const date = new Date(day.date);
       const monthKey = date.toLocaleString('default', { month: 'short' });
       const weekNumber = Math.floor(index / 7);
 
       // Only store the first week number for each month
-      if (!months.hasOwnProperty(monthKey)) {
+      // Exclude current month if it's the first week because it will pick up the current month of last year
+      if (
+        !months.hasOwnProperty(monthKey) ||
+        (monthKey === currentMonthKey && months[monthKey] === 0)
+      ) {
         months[monthKey] = weekNumber;
       }
     });
