@@ -6,6 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   View,
+  Text,
 } from 'react-native';
 import { Calendar } from '../components/Calendar';
 import { AddEditDialog } from '../components/AddEditDialog';
@@ -57,13 +58,25 @@ export default function App() {
         <AppBar onAddHabit={openAddEditDialog} />
         <ScrollView contentContainerStyle={styles.scrollView}>
           <View style={styles.content}>
-            {habits?.map((habit: any) => (
-              <Calendar
-                key={habit?.id}
-                habit={habit}
-                onClick={() => openAddEditDialog(habit)}
-              />
-            ))}
+            {habits?.length === 0 ? (
+              <View style={styles.emptyStateContainer}>
+                <Text style={styles.emptyStateText}>
+                  Create your first habit by clicking the + button.
+                </Text>
+                <Text style={styles.emptyStateText}>
+                  {Platform.OS === 'web' &&
+                    'Use mobile view for best experience.'}
+                </Text>
+              </View>
+            ) : (
+              habits?.map((habit: any) => (
+                <Calendar
+                  key={habit?.id}
+                  habit={habit}
+                  onClick={() => openAddEditDialog(habit)}
+                />
+              ))
+            )}
           </View>
         </ScrollView>
         <AddEditDialog
@@ -89,11 +102,24 @@ const styles = StyleSheet.create({
     paddingTop: 0,
     paddingBottom: 8,
     gap: 16,
+    flex: 1,
   },
   offlineNotice: {
     backgroundColor: '#FFD700',
     color: '#000',
     textAlign: 'center',
     padding: 10,
+  },
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 24,
+    gap: 8,
+  },
+  emptyStateText: {
+    color: '#fff',
+    fontSize: 16,
+    textAlign: 'center',
   },
 });
