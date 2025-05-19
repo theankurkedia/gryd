@@ -61,10 +61,11 @@ export default function App() {
                 <Text style={styles.emptyStateText}>
                   Create your first habit by clicking the + button.
                 </Text>
-                <Text style={styles.emptyStateText}>
-                  {Platform.OS === 'web' &&
-                    'Use mobile view for best experience.'}
-                </Text>
+                {Platform.OS === 'web' && (
+                  <Text style={styles.emptyStateText}>
+                    Use mobile view for best experience.
+                  </Text>
+                )}
               </View>
             ) : (
               habits?.map((habit: any) => (
