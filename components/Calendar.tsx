@@ -12,7 +12,7 @@ import { Habit } from '../types';
 import { Check } from 'lucide-react-native';
 import Icon from './Icon';
 import { COLORS_PALETTE } from '../constants/Colors';
-import { cancelScheduledNotification } from '../src/utils/notifications';
+import { cancelScheduledNotification } from '../utils/notifications';
 
 interface Props {
   habit: Habit;

@@ -25,7 +25,7 @@ import DateTimePicker, {
 import {
   cancelScheduledNotification,
   setHabitReminder,
-} from '../src/utils/notifications';
+} from '../utils/notifications';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const PADDING_HORIZONTAL = 20;

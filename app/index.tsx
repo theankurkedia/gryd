@@ -14,7 +14,7 @@ import { useHabitsStore } from '../store';
 import { CalendarSkeleton } from '../components/CalendarSkeleton';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Habit } from '../types';
-import { registerForPushNotificationsAsync } from '../src/utils/notifications';
+import { registerForPushNotificationsAsync } from '../utils/notifications';
 
 export default function App() {
   const [selectedHabit, setSelectedHabit] = useState<Habit>();
