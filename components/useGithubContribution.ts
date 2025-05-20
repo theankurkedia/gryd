@@ -16,9 +16,11 @@ export function useGithubContribution(username: string, options?: any) {
     // Validate token
     const token = process.env.EXPO_PUBLIC_GITHUB_TOKEN;
     if (!token) {
-      throw new Error(
-        'GitHub token is not configured. Please set EXPO_PUBLIC_GITHUB_TOKEN in your .env file'
-      );
+      setStatus({
+        loading: false,
+        error: 'No token found',
+      });
+      return;
     }
 
     fetch(`https://api.github.com/graphql`, {
