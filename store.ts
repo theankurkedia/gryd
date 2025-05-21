@@ -5,7 +5,8 @@ import {
   saveCompletionsData,
   saveHabitsData,
 } from './services/db';
-import { Completion, Habit } from './types';
+import { Completion, Habit, DataSource } from './types';
+import { fetchGithubContributionData } from './services/gh';
 
 interface HabitsStore {
   habits: Habit[];
@@ -17,7 +18,7 @@ interface HabitsStore {
   editHabit: (habit: Habit) => Promise<void>;
   deleteHabit: (habitId: string) => Promise<void>;
   getHabitCompletions: (habitId: string) => {
-    [date: string]: boolean;
+    [date: string]: number;
   };
   toggleHabitCompletion: (date: string, habitId: string) => Promise<void>;
   saveNotifToken: (token: string) => void;
@@ -30,7 +31,35 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
   initialiseData: async () => {
     set({ isInitialising: true });
     const habits = await getHabitsData();
-    const completions = await getHabitCompletionsFromDb();
+
+    // Get all manual completions
+    let completions = await getHabitCompletionsFromDb();
+
+    if (habits?.some(h => h.dataSource !== DataSource.Manual)) {
+      await Promise.all(
+        habits
+          ?.filter(
+            h => h.dataSource !== DataSource?.Manual && h.dataSourceIdentifier
+          )
+          ?.map(async h => {
+            switch (h.dataSource) {
+              case DataSource.GitHub:
+                try {
+                  const githubCompletions = await fetchGithubContributionData(
+                    h.dataSourceIdentifier as string
+                  );
+                  completions = {
+                    ...completions,
+                    [h.id]: githubCompletions,
+                  };
+                } catch (error) {
+                  console.error(error);
+                }
+                break;
+            }
+          }) || []
+      );
+    }
     set({ habits });
     set({ completions });
     set({ isInitialising: false });
@@ -44,19 +73,26 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
     });
     set({ habits });
     await saveHabitsData(habits);
+    get().initialiseData();
   },
   editHabit: async (habit: Habit) => {
     const habits = get().habits;
     const updatedHabits = habits.map(h => (h.id === habit.id ? habit : h));
     set({ habits: updatedHabits });
     await saveHabitsData(updatedHabits);
+    get().initialiseData();
   },
   deleteHabit: async (habitId: string) => {
+    const habit = get().habits.find(h => h.id === habitId);
     // Remove completions for the habit
     const { [habitId]: deletedCompletions, ...remainingCompletions } =
       get().completions;
     set({ completions: remainingCompletions });
-    await saveCompletionsData(remainingCompletions);
+
+    // Only save to storage if it's a manual habit
+    if (habit?.dataSource === DataSource.Manual) {
+      await saveCompletionsData(remainingCompletions);
+    }
 
     // Remove the habit
     const updatedHabits = get().habits.filter(habit => habit.id !== habitId);
@@ -69,14 +105,19 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
     return completions[habitId];
   },
   toggleHabitCompletion: async (date: string, habitId: string) => {
+    const habit = get().habits.find(h => h.id === habitId);
     const completions = get().completions;
-    const completed = completions?.[habitId]?.[date] ?? false;
+    const completed = completions?.[habitId]?.[date] ?? 0;
     if (!completions?.[habitId]) {
       completions[habitId] = {};
     }
-    completions[habitId][date] = !completed;
+    completions[habitId][date] = completed === 0 ? 1 : 0;
     set({ completions });
-    await saveCompletionsData(completions);
+
+    // Only save to storage if it's a manual habit
+    if (habit?.dataSource === DataSource.Manual) {
+      await saveCompletionsData(completions);
+    }
   },
   saveNotifToken: (token: string) => set({ notifToken: token }),
 }));

@@ -16,7 +16,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { useHabitsStore } from '../store';
-import { Habit } from '../types';
+import { DataSource, Habit } from '../types';
 import { DeleteDialog } from './DeleteDialog';
 import { COLORS_PALETTE } from '../constants/Colors';
 import DateTimePicker, {
@@ -26,6 +26,7 @@ import {
   cancelScheduledNotification,
   setHabitReminder,
 } from '../utils/notifications';
+import { Picker } from '@react-native-picker/picker';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const PADDING_HORIZONTAL = 20;
@@ -243,6 +244,41 @@ export function AddEditDialog(props: Props) {
             />
           </View>
           <View>
+            <Text style={styles.subtitle}>Data Source</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={selectedHabit?.dataSource ?? DataSource.Manual}
+                onValueChange={(value: DataSource) =>
+                  setSelectedHabit(
+                    prev => ({ ...(prev ?? {}), dataSource: value }) as Habit
+                  )
+                }
+                style={styles.picker}
+                dropdownIconColor="#fff"
+              >
+                <Picker.Item label="Manual" value={DataSource.Manual} />
+                <Picker.Item label="GitHub" value={DataSource.GitHub} />
+              </Picker>
+            </View>
+          </View>
+          {selectedHabit?.dataSource === DataSource.GitHub && (
+            <View>
+              <Text style={styles.subtitle}>Username</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={`Enter ${selectedHabit?.dataSource} username`}
+                placeholderTextColor="#6B7280"
+                value={selectedHabit?.dataSourceIdentifier}
+                onChangeText={text =>
+                  setSelectedHabit(
+                    prev =>
+                      ({ ...(prev ?? {}), dataSourceIdentifier: text }) as Habit
+                  )
+                }
+              />
+            </View>
+          )}
+          <View>
             <Text style={styles.subtitle}>Select an Icon</Text>
             <TextInput
               style={styles.input}
@@ -444,5 +480,27 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     color: '#6B7280',
+  },
+  pickerContainer: {
+    backgroundColor: '#374151',
+    borderRadius: 4,
+    marginHorizontal: 20,
+    marginBottom: 8,
+    overflow: 'hidden',
+  },
+  picker: {
+    color: '#fff',
+    height: 40,
+    backgroundColor: '#374151',
+    padding: 12,
+    textAlignVertical: 'center',
+    ...Platform.select({
+      web: {
+        outlineStyle: 'none',
+        outlineWidth: 0,
+        outline: 'none',
+        borderWidth: 0,
+      },
+    }),
   },
 });

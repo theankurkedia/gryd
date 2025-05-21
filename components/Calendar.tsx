@@ -31,7 +31,7 @@ export function Calendar({ habit, onClick }: Props) {
   const { getHabitCompletions, toggleHabitCompletion } = useHabitsStore();
 
   const habitCompletions = getHabitCompletions(habit.id);
-  const isTodayCompleted = habitCompletions?.[formatDate(new Date())] ?? false;
+  const isTodayCompleted = habitCompletions?.[formatDate(new Date())] ?? 0;
 
   const calendarData = useMemo(() => {
     if (!habit) return [];
@@ -48,7 +48,7 @@ export function Calendar({ habit, onClick }: Props) {
       const dateString = formatDate(date);
       return {
         date: dateString,
-        completed: habitData?.[dateString] || false,
+        completed: habitData?.[dateString] || 0,
       };
     });
 
@@ -61,7 +61,7 @@ export function Calendar({ habit, onClick }: Props) {
         const dateString = formatDate(date);
         return {
           date: dateString,
-          completed: false,
+          completed: 0,
         };
       }
     );
@@ -76,7 +76,7 @@ export function Calendar({ habit, onClick }: Props) {
 
   if (!habit) return null;
 
-  const getContributionColor = (completed: boolean) => {
+  const getContributionColor = (completed: number) => {
     return completed ? habit?.color || COLORS_PALETTE[0] : '#161B22';
   };
 
