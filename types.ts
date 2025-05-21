@@ -18,7 +18,7 @@ export interface Habit {
 
 export interface Completion {
   [key: string]: {
-    [date: string]: boolean;
+    [date: string]: number;
   };
 }
 

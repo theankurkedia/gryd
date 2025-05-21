@@ -36,7 +36,7 @@ export const addHabitToDb = async (habit: Habit) => {
 export const updateHabitCompletionInDb = async (
   date: string,
   habitId: string,
-  completed: boolean
+  frequency: number
 ) => {
   const completions = await getHabitCompletionsFromDb();
 
@@ -44,7 +44,7 @@ export const updateHabitCompletionInDb = async (
     completions[habitId] = {};
   }
 
-  completions[habitId][date] = completed;
+  completions[habitId][date] = frequency;
   await saveCompletionsData(completions);
   return completions[habitId];
 };
