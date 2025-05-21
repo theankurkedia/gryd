@@ -1,3 +1,8 @@
+export enum DataSource {
+  Manual = 'manual',
+  GitHub = 'github',
+}
+
 export interface Habit {
   id: string;
   name: string;
@@ -6,6 +11,9 @@ export interface Habit {
   color: string;
   createdAt: string;
   dailyReminderTime: string;
+  dataSource: DataSource;
+  // Identifier for the data source (e.g., username for GitHub/GitLab, API key for other services)
+  dataSourceIdentifier?: string;
 }
 
 export interface Completion {
