@@ -73,12 +73,14 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
     });
     set({ habits });
     await saveHabitsData(habits);
+    get().initialiseData();
   },
   editHabit: async (habit: Habit) => {
     const habits = get().habits;
     const updatedHabits = habits.map(h => (h.id === habit.id ? habit : h));
     set({ habits: updatedHabits });
     await saveHabitsData(updatedHabits);
+    get().initialiseData();
   },
   deleteHabit: async (habitId: string) => {
     const habit = get().habits.find(h => h.id === habitId);
