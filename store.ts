@@ -35,7 +35,7 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
     // Get all manual completions
     let completions = await getHabitCompletionsFromDb();
 
-    if (habits?.some(h => h.dataSource !== DataSource.Manual)) {
+    if (habits?.some(h => h.dataSource && h.dataSource !== DataSource.Manual)) {
       await Promise.all(
         habits
           ?.filter(
@@ -90,7 +90,7 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
     set({ completions: remainingCompletions });
 
     // Only save to storage if it's a manual habit
-    if (habit?.dataSource === DataSource.Manual) {
+    if (!habit?.dataSource || habit?.dataSource === DataSource.Manual) {
       await saveCompletionsData(remainingCompletions);
     }
 
@@ -115,7 +115,7 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
     set({ completions });
 
     // Only save to storage if it's a manual habit
-    if (habit?.dataSource === DataSource.Manual) {
+    if (!habit?.dataSource || habit?.dataSource === DataSource.Manual) {
       await saveCompletionsData(completions);
     }
   },
