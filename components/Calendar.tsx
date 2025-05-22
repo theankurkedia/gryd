@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { formatDate } from '../utils/date';
 import { useHabitsStore } from '../store';
-import { Habit } from '../types';
+import { DataSource, Habit } from '../types';
 import { Check } from 'lucide-react-native';
 import Icon from './Icon';
 import { COLORS_PALETTE } from '../constants/Colors';
@@ -81,7 +81,7 @@ export function Calendar({ habit, onClick }: Props) {
   };
 
   const getContributionCount = () => {
-    return calendarData.filter(day => day.completed).length;
+    return calendarData.reduce((sum, day) => sum + day.completed, 0);
   };
 
   const renderGrid = () => {
@@ -158,22 +158,24 @@ export function Calendar({ habit, onClick }: Props) {
             {getContributionCount()} contributions in the last year
           </Text>
         </View>
-        <TouchableOpacity
-          style={[
-            styles.todayButton,
-            {
-              backgroundColor: isTodayCompleted
-                ? habit?.color || COLORS_PALETTE[0]
-                : '#161B22',
-            },
-          ]}
-          onPress={e => {
-            e.stopPropagation();
-            toggleHabitCompletion(formatDate(new Date()), habit.id);
-          }}
-        >
-          <Check color="#fff" size={20} />
-        </TouchableOpacity>
+        {(!habit.dataSource || habit.dataSource === DataSource.Manual) && (
+          <TouchableOpacity
+            style={[
+              styles.todayButton,
+              {
+                backgroundColor: isTodayCompleted
+                  ? habit?.color || COLORS_PALETTE[0]
+                  : '#161B22',
+              },
+            ]}
+            onPress={e => {
+              e.stopPropagation();
+              toggleHabitCompletion(formatDate(new Date()), habit.id);
+            }}
+          >
+            <Check color="#fff" size={20} />
+          </TouchableOpacity>
+        )}
       </TouchableOpacity>
 
       <View style={styles.calendarContainer}>
