@@ -50,9 +50,7 @@ export function CalendarSkeleton() {
   };
 
   const renderWeekdayLabels = () => {
-    return WEEKDAYS.map((day) => (
-      <View key={day} style={styles.weekdayLabel} />
-    ));
+    return WEEKDAYS.map(day => <View key={day} style={styles.weekdayLabel} />);
   };
 
   const renderMonthLabels = () => {
@@ -62,7 +60,7 @@ export function CalendarSkeleton() {
         style={[
           styles.monthLabel,
           {
-            left: (index * WEEKS) / 12 * GRID_SIZE,
+            left: ((index * WEEKS) / 12) * GRID_SIZE,
           },
         ]}
       />
@@ -85,14 +83,10 @@ export function CalendarSkeleton() {
       </View>
 
       <View style={styles.calendarContainer}>
-        <View style={styles.weekdayLabels}>
-          {renderWeekdayLabels()}
-        </View>
+        <View style={styles.weekdayLabels}>{renderWeekdayLabels()}</View>
 
         <View style={styles.contributionWrapper}>
-          <View style={styles.monthLabelsContainer}>
-            {renderMonthLabels()}
-          </View>
+          <View style={styles.monthLabelsContainer}>{renderMonthLabels()}</View>
           <View
             style={[
               styles.contributionGrid,
@@ -146,6 +140,7 @@ const styles = StyleSheet.create({
   },
   calendarContainer: {
     flexDirection: 'row',
+    overflow: 'hidden',
   },
   weekdayLabels: {
     marginRight: 4,
