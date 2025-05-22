@@ -52,31 +52,36 @@ export default function App() {
   return (
     <GestureHandlerRootView>
       <SafeAreaView style={styles.container}>
-        {isInitialising ? <CalendarSkeleton /> : null}
         <AppBar onAddHabit={openAddEditDialog} />
         <ScrollView contentContainerStyle={styles.scrollView}>
-          <View style={styles.content}>
-            {habits?.length === 0 ? (
-              <View style={styles.emptyStateContainer}>
-                <Text style={styles.emptyStateText}>
-                  Create your first habit by clicking the + button.
-                </Text>
-                {Platform.OS === 'web' && (
+          {isInitialising ? (
+            <View style={styles.content}>
+              <CalendarSkeleton />
+            </View>
+          ) : (
+            <View style={styles.content}>
+              {habits?.length === 0 ? (
+                <View style={styles.emptyStateContainer}>
                   <Text style={styles.emptyStateText}>
-                    Use mobile view for best experience.
+                    Create your first habit by clicking the + button.
                   </Text>
-                )}
-              </View>
-            ) : (
-              habits?.map((habit: any) => (
-                <Calendar
-                  key={habit?.id}
-                  habit={habit}
-                  onClick={() => openAddEditDialog(habit)}
-                />
-              ))
-            )}
-          </View>
+                  {Platform.OS === 'web' && (
+                    <Text style={styles.emptyStateText}>
+                      Use mobile view for best experience.
+                    </Text>
+                  )}
+                </View>
+              ) : (
+                habits?.map((habit: any) => (
+                  <Calendar
+                    key={habit?.id}
+                    habit={habit}
+                    onClick={() => openAddEditDialog(habit)}
+                  />
+                ))
+              )}
+            </View>
+          )}
         </ScrollView>
         <AddEditDialog
           habit={selectedHabit}
