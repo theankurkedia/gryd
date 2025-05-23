@@ -6,8 +6,10 @@ import {
   saveHabitsData,
 } from './services/db';
 import { Completion, Habit, DataSource } from './types';
-import { fetchGithubContributionData } from './services/gh';
-import { fetchGitlabContributionData } from './services/gitlab';
+import {
+  fetchGithubContributionData,
+  fetchGitlabContributionData,
+} from './services/external-data-sources';
 
 interface HabitsStore {
   habits: Habit[];
@@ -62,11 +64,10 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
                   const gitlabContributions = await fetchGitlabContributionData(
                     h.dataSourceIdentifier as string
                   );
-                  console.log('*** gitlabContributions', gitlabContributions);
-                  // completions = {
-                  //   ...completions,
-                  //   [h.id]: gitlabContributions,
-                  // };
+                  completions = {
+                    ...completions,
+                    [h.id]: gitlabContributions,
+                  };
                 } catch (error) {
                   console.error(error);
                 }
