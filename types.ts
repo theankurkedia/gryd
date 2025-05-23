@@ -1,6 +1,7 @@
 export enum DataSource {
   Manual = 'manual',
   GitHub = 'github',
+  GitLab = 'gitlab',
 }
 
 export interface Habit {

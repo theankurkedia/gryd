@@ -258,26 +258,31 @@ export function AddEditDialog(props: Props) {
               >
                 <Picker.Item label="Manual" value={DataSource.Manual} />
                 <Picker.Item label="GitHub" value={DataSource.GitHub} />
+                <Picker.Item label="GitLab" value={DataSource.GitLab} />
               </Picker>
             </View>
           </View>
-          {selectedHabit?.dataSource === DataSource.GitHub && (
-            <View>
-              <Text style={styles.subtitle}>Username</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={`Enter ${selectedHabit?.dataSource} username`}
-                placeholderTextColor="#6B7280"
-                value={selectedHabit?.dataSourceIdentifier}
-                onChangeText={text =>
-                  setSelectedHabit(
-                    prev =>
-                      ({ ...(prev ?? {}), dataSourceIdentifier: text }) as Habit
-                  )
-                }
-              />
-            </View>
-          )}
+          {selectedHabit?.dataSource &&
+            selectedHabit?.dataSource !== DataSource.Manual && (
+              <View>
+                <Text style={styles.subtitle}>Username</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder={`Enter ${selectedHabit?.dataSource} username`}
+                  placeholderTextColor="#6B7280"
+                  value={selectedHabit?.dataSourceIdentifier}
+                  onChangeText={text =>
+                    setSelectedHabit(
+                      prev =>
+                        ({
+                          ...(prev ?? {}),
+                          dataSourceIdentifier: text,
+                        }) as Habit
+                    )
+                  }
+                />
+              </View>
+            )}
           <View>
             <Text style={styles.subtitle}>Select an Icon</Text>
             <TextInput
