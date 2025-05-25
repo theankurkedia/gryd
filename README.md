@@ -13,13 +13,15 @@ A habit tracking app
   - [x] color
   - [x] icon
 - [x] Add reminders
-- [ ] Add external source option for data too (like Github/Gitlab)
-- [ ] Release build for Android / Web PWA
+- [x] Release Web App
+- [x] Add external source option for data too (like Github/Gitlab)
 - [ ] Add frequency options
+- [ ] Release build for Android
+- [ ] Add export/import for the data
+- [ ] Add option to sign in and sync progress across devices
 - [ ] Add option to mark past date
+- [ ] Release iOS
 - [ ] Add screen widgets
 - [ ] Show analytics
-- [ ] Add export/import for the data
 - [ ] Add month/week view for the habit
 - [ ] Add light/dark/system mode
-- [ ] Add option to sign in and sync progress across devices
