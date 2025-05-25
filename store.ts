@@ -6,10 +6,7 @@ import {
   saveHabitsData,
 } from './services/db';
 import { Completion, Habit, DataSource } from './types';
-import {
-  fetchGithubContributionData,
-  fetchGitlabContributionData,
-} from './services/external-data-sources';
+import { fetchExternalContributionData } from './services/external-data-sources';
 
 interface HabitsStore {
   habits: Habit[];
@@ -45,36 +42,17 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
             h => h.dataSource !== DataSource?.Manual && h.dataSourceIdentifier
           )
           ?.map(async h => {
-            switch (h.dataSource) {
-              case DataSource.GitHub:
-                try {
-                  const githubCompletions = await fetchGithubContributionData(
-                    h.dataSourceIdentifier as string
-                  );
-                  completions = {
-                    ...completions,
-                    [h.id]: githubCompletions,
-                  };
-                } catch (error) {
-                  console.error(error);
-                }
-                break;
-              case DataSource.GitLab:
-                try {
-                  const gitlabContributions = await fetchGitlabContributionData(
-                    h.dataSourceIdentifier as string
-                  );
-                  completions = {
-                    ...completions,
-                    [h.id]: gitlabContributions,
-                  };
-                } catch (error) {
-                  console.error(error);
-                }
-                break;
-
-              default:
-                break;
+            try {
+              const externalCompletions = await fetchExternalContributionData(
+                h.dataSource as Exclude<DataSource, 'manual'>,
+                h.dataSourceIdentifier as string
+              );
+              completions = {
+                ...completions,
+                [h.id]: externalCompletions?.data,
+              };
+            } catch (error) {
+              console.error(error);
             }
           }) || []
       );
