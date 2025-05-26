@@ -7,6 +7,7 @@ import {
 } from './services/db';
 import { Completion, Habit, DataSource } from './types';
 import { fetchExternalContributionData } from './services/external-data-sources';
+import { DEFAULT_FREQUENCY } from './constants/frequency';
 
 interface HabitsStore {
   habits: Habit[];
@@ -30,7 +31,7 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
   completions: {},
   initialiseData: async () => {
     set({ isInitialising: true });
-    const habits = await getHabitsData();
+    let habits = await getHabitsData();
 
     // Get all manual completions
     let completions = await getHabitCompletionsFromDb();
@@ -51,6 +52,7 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
                 ...completions,
                 [h.id]: externalCompletions?.data,
               };
+              h.frequency = DEFAULT_FREQUENCY[h.dataSource];
             } catch (error) {
               console.error(error);
             }

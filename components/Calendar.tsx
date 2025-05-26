@@ -18,6 +18,7 @@ interface Props {
   habit: Habit;
   onClick: () => void;
 }
+
 const BOX_SIZE = 10;
 const MARGIN = 2;
 const GRID_SIZE = BOX_SIZE + MARGIN * 2;
@@ -77,7 +78,7 @@ export function Calendar({ habit, onClick }: Props) {
   if (!habit) return null;
 
   const getContributionColor = (completed: number) => {
-    return completed ? habit?.color || COLORS_PALETTE[0] : '#161B22';
+    return completed ? habit?.color || COLORS_PALETTE.cyan : '#161B22';
   };
 
   const getContributionCount = () => {
@@ -164,7 +165,7 @@ export function Calendar({ habit, onClick }: Props) {
               styles.todayButton,
               {
                 backgroundColor: isTodayCompleted
-                  ? habit?.color || COLORS_PALETTE[0]
+                  ? habit?.color || COLORS_PALETTE.cyan
                   : '#161B22',
               },
             ]}

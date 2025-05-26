@@ -162,7 +162,7 @@ export function AddEditDialog(props: Props) {
 
   const renderColorGrid = () => (
     <View style={styles.colorContainer}>
-      {COLORS_PALETTE.map(color => (
+      {Object.values(COLORS_PALETTE).map(color => (
         <TouchableOpacity
           key={color}
           style={[
