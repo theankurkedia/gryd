@@ -357,17 +357,20 @@ export function AddEditDialog(props: Props) {
             <Text style={styles.subtitle}>Select a color</Text>
             <View style={styles.colorGrid}>{renderColorGrid()}</View>
           </View>
-          <FrequencySelector
-            value={selectedHabit?.frequency || 1}
-            onChange={freq =>
-              setSelectedHabit(
-                prev => ({ ...(prev ?? {}), frequency: freq }) as Habit
-              )
-            }
-            max={5}
-            editable={true}
-            onEditPress={() => {}}
-          />
+          {(!selectedHabit?.dataSource ||
+            selectedHabit?.dataSource === DataSource.Manual) && (
+            <FrequencySelector
+              value={selectedHabit?.frequency || 1}
+              onChange={freq =>
+                setSelectedHabit(
+                  prev => ({ ...(prev ?? {}), frequency: freq }) as Habit
+                )
+              }
+              max={5}
+              editable={true}
+              onEditPress={() => {}}
+            />
+          )}
         </ScrollView>
       </Animated.View>
       <DeleteDialog
