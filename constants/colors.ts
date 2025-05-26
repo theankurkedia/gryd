@@ -1,6 +1,5 @@
 /**
  * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
  */
 
 const tintColorLight = '#0a7ea4';
@@ -79,11 +78,20 @@ export const getColorVariant = (
   currentFrequency: number,
   maxFrequency: number
 ): string => {
-  if (maxFrequency <= 0) throw new Error('maxFrequency must be greater than 0');
-  if (currentFrequency < 0)
-    throw new Error('currentFrequency cannot be negative');
-  if (currentFrequency > maxFrequency)
-    throw new Error('currentFrequency cannot be greater than maxFrequency');
+  // Allow the user to set the max frequency to 6 and the min frequency to 1
+  const MAX_FREQUENCY_LIMIT = 6;
+  const MIN_FREQUENCY_LIMIT = 1;
+
+  if (
+    maxFrequency > MAX_FREQUENCY_LIMIT ||
+    currentFrequency > MAX_FREQUENCY_LIMIT
+  ) {
+    maxFrequency = MAX_FREQUENCY_LIMIT;
+  }
+
+  if (maxFrequency < MIN_FREQUENCY_LIMIT) {
+    maxFrequency = MIN_FREQUENCY_LIMIT;
+  }
 
   // If maxFrequency is 1, we only need two states
   if (maxFrequency === 1) {

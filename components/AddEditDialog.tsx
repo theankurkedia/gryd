@@ -27,6 +27,7 @@ import {
   setHabitReminder,
 } from '../utils/notifications';
 import { Picker } from '@react-native-picker/picker';
+import { FrequencySelector } from './FrequencySelector';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const PADDING_HORIZONTAL = 20;
@@ -284,7 +285,7 @@ export function AddEditDialog(props: Props) {
               </View>
             )}
           <View>
-            <Text style={styles.subtitle}>Select an Icon</Text>
+            <Text style={styles.subtitle}>Select an icon</Text>
             <TextInput
               style={styles.input}
               placeholder="Search icons..."
@@ -353,9 +354,20 @@ export function AddEditDialog(props: Props) {
             </View>
           )}
           <View>
-            <Text style={styles.subtitle}>Select a Color</Text>
+            <Text style={styles.subtitle}>Select a color</Text>
             <View style={styles.colorGrid}>{renderColorGrid()}</View>
           </View>
+          <FrequencySelector
+            value={selectedHabit?.frequency || 1}
+            onChange={freq =>
+              setSelectedHabit(
+                prev => ({ ...(prev ?? {}), frequency: freq }) as Habit
+              )
+            }
+            max={5}
+            editable={true}
+            onEditPress={() => {}}
+          />
         </ScrollView>
       </Animated.View>
       <DeleteDialog
