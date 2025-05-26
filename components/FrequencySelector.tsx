@@ -7,7 +7,7 @@ import {
   Animated,
 } from 'react-native';
 import { Minus, Plus } from 'lucide-react-native';
-import { COLORS_PALETTE, getColorVariant } from '@/constants/colors';
+import { COLORS_PALETTE, getContributionColor } from '@/constants/colors';
 
 interface FrequencySelectorProps {
   value: number;
@@ -61,7 +61,7 @@ export const FrequencySelector: React.FC<FrequencySelectorProps> = ({
               style={[
                 styles.progressSquare,
                 {
-                  backgroundColor: getColorVariant(
+                  backgroundColor: getContributionColor(
                     COLORS_PALETTE.cyan,
                     i,
                     value

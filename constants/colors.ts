@@ -73,7 +73,7 @@ const withOpacity = (hex: string, opacity: number): string => {
  * @param maxFrequency Maximum possible frequency
  * @returns The appropriate color variant
  */
-export const getColorVariant = (
+export const getContributionColor = (
   baseColor: string,
   currentFrequency: number,
   maxFrequency: number
@@ -100,6 +100,6 @@ export const getColorVariant = (
 
   // Calculate opacity based on the ratio of current frequency to max frequency
   // This creates a smooth gradient from dim (0.2) to full (1.0)
-  const opacity = 0.2 + (currentFrequency / maxFrequency) * 0.8;
+  const opacity = 0.1 + (currentFrequency / maxFrequency) * 0.9;
   return withOpacity(baseColor, opacity);
 };

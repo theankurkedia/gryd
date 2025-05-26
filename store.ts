@@ -21,7 +21,7 @@ interface HabitsStore {
   getHabitCompletions: (habitId: string) => {
     [date: string]: number;
   };
-  toggleHabitCompletion: (date: string, habitId: string) => Promise<void>;
+  updateHabitCompletion: (date: string, habitId: string) => Promise<void>;
   saveNotifToken: (token: string) => void;
 }
 
@@ -103,14 +103,15 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
     const completions = get().completions;
     return completions[habitId];
   },
-  toggleHabitCompletion: async (date: string, habitId: string) => {
+  updateHabitCompletion: async (date: string, habitId: string) => {
     const habit = get().habits.find(h => h.id === habitId);
     const completions = get().completions;
     const completed = completions?.[habitId]?.[date] ?? 0;
     if (!completions?.[habitId]) {
       completions[habitId] = {};
     }
-    completions[habitId][date] = completed === 0 ? 1 : 0;
+    completions[habitId][date] =
+      completed === habit?.frequency ? 0 : completed + 1;
     set({ completions });
 
     // Only save to storage if it's a manual habit
