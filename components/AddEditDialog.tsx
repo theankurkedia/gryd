@@ -18,7 +18,7 @@ import Animated, {
 import { useHabitsStore } from '../store';
 import { DataSource, Habit } from '../types';
 import { DeleteDialog } from './DeleteDialog';
-import { COLORS_PALETTE } from '../constants/Colors';
+import { COLORS_PALETTE } from '../constants/colors';
 import DateTimePicker, {
   DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
@@ -27,6 +27,7 @@ import {
   setHabitReminder,
 } from '../utils/notifications';
 import { Picker } from '@react-native-picker/picker';
+import { FrequencySelector } from './FrequencySelector';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const PADDING_HORIZONTAL = 20;
@@ -162,7 +163,7 @@ export function AddEditDialog(props: Props) {
 
   const renderColorGrid = () => (
     <View style={styles.colorContainer}>
-      {COLORS_PALETTE.map(color => (
+      {Object.values(COLORS_PALETTE).map(color => (
         <TouchableOpacity
           key={color}
           style={[
@@ -284,7 +285,7 @@ export function AddEditDialog(props: Props) {
               </View>
             )}
           <View>
-            <Text style={styles.subtitle}>Select an Icon</Text>
+            <Text style={styles.subtitle}>Select an icon</Text>
             <TextInput
               style={styles.input}
               placeholder="Search icons..."
@@ -353,9 +354,23 @@ export function AddEditDialog(props: Props) {
             </View>
           )}
           <View>
-            <Text style={styles.subtitle}>Select a Color</Text>
+            <Text style={styles.subtitle}>Select a color</Text>
             <View style={styles.colorGrid}>{renderColorGrid()}</View>
           </View>
+          {(!selectedHabit?.dataSource ||
+            selectedHabit?.dataSource === DataSource.Manual) && (
+            <FrequencySelector
+              value={selectedHabit?.frequency || 1}
+              onChange={freq =>
+                setSelectedHabit(
+                  prev => ({ ...(prev ?? {}), frequency: freq }) as Habit
+                )
+              }
+              max={5}
+              editable={true}
+              onEditPress={() => {}}
+            />
+          )}
         </ScrollView>
       </Animated.View>
       <DeleteDialog

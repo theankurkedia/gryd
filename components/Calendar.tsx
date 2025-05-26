@@ -11,13 +11,14 @@ import { useHabitsStore } from '../store';
 import { DataSource, Habit } from '../types';
 import { Check } from 'lucide-react-native';
 import Icon from './Icon';
-import { COLORS_PALETTE } from '../constants/Colors';
+import { COLORS_PALETTE, getContributionColor } from '../constants/colors';
 import { cancelScheduledNotification } from '../utils/notifications';
 
 interface Props {
   habit: Habit;
   onClick: () => void;
 }
+
 const BOX_SIZE = 10;
 const MARGIN = 2;
 const GRID_SIZE = BOX_SIZE + MARGIN * 2;
@@ -28,10 +29,10 @@ const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 export function Calendar({ habit, onClick }: Props) {
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const { getHabitCompletions, toggleHabitCompletion } = useHabitsStore();
+  const { getHabitCompletions, updateHabitCompletion } = useHabitsStore();
 
   const habitCompletions = getHabitCompletions(habit.id);
-  const isTodayCompleted = habitCompletions?.[formatDate(new Date())] ?? 0;
+  const todaysCompletions = habitCompletions?.[formatDate(new Date())] ?? 0;
 
   const calendarData = useMemo(() => {
     if (!habit) return [];
@@ -76,10 +77,6 @@ export function Calendar({ habit, onClick }: Props) {
 
   if (!habit) return null;
 
-  const getContributionColor = (completed: number) => {
-    return completed ? habit?.color || COLORS_PALETTE[0] : '#161B22';
-  };
-
   const getContributionCount = () => {
     return calendarData.reduce((sum, day) => sum + day.completed, 0);
   };
@@ -98,7 +95,11 @@ export function Calendar({ habit, onClick }: Props) {
           style={[
             styles.contributionBox,
             {
-              backgroundColor: getContributionColor(day.completed),
+              backgroundColor: getContributionColor(
+                habit?.color || COLORS_PALETTE.cyan,
+                day.completed,
+                habit?.frequency || 1
+              ),
               position: 'absolute',
               top: dayOfWeek * GRID_SIZE,
               left: weekNumber * GRID_SIZE,
@@ -163,14 +164,16 @@ export function Calendar({ habit, onClick }: Props) {
             style={[
               styles.todayButton,
               {
-                backgroundColor: isTodayCompleted
-                  ? habit?.color || COLORS_PALETTE[0]
-                  : '#161B22',
+                backgroundColor: getContributionColor(
+                  habit?.color || COLORS_PALETTE.cyan,
+                  todaysCompletions,
+                  habit?.frequency || 1
+                ),
               },
             ]}
             onPress={e => {
               e.stopPropagation();
-              toggleHabitCompletion(formatDate(new Date()), habit.id);
+              updateHabitCompletion(formatDate(new Date()), habit.id);
             }}
           >
             <Check color="#fff" size={20} />

@@ -15,6 +15,7 @@ export interface Habit {
   dataSource: DataSource;
   // Identifier for the data source (e.g., username for GitHub/GitLab, API key for other services)
   dataSourceIdentifier?: string;
+  frequency?: number;
 }
 
 export interface Completion {

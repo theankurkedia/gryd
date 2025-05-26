@@ -7,6 +7,7 @@ import {
 } from './services/db';
 import { Completion, Habit, DataSource } from './types';
 import { fetchExternalContributionData } from './services/external-data-sources';
+import { DEFAULT_FREQUENCY } from './constants/frequency';
 
 interface HabitsStore {
   habits: Habit[];
@@ -20,7 +21,7 @@ interface HabitsStore {
   getHabitCompletions: (habitId: string) => {
     [date: string]: number;
   };
-  toggleHabitCompletion: (date: string, habitId: string) => Promise<void>;
+  updateHabitCompletion: (date: string, habitId: string) => Promise<void>;
   saveNotifToken: (token: string) => void;
 }
 
@@ -30,7 +31,7 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
   completions: {},
   initialiseData: async () => {
     set({ isInitialising: true });
-    const habits = await getHabitsData();
+    let habits = await getHabitsData();
 
     // Get all manual completions
     let completions = await getHabitCompletionsFromDb();
@@ -51,6 +52,7 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
                 ...completions,
                 [h.id]: externalCompletions?.data,
               };
+              h.frequency = DEFAULT_FREQUENCY[h.dataSource];
             } catch (error) {
               console.error(error);
             }
@@ -101,14 +103,15 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
     const completions = get().completions;
     return completions[habitId];
   },
-  toggleHabitCompletion: async (date: string, habitId: string) => {
+  updateHabitCompletion: async (date: string, habitId: string) => {
     const habit = get().habits.find(h => h.id === habitId);
     const completions = get().completions;
     const completed = completions?.[habitId]?.[date] ?? 0;
     if (!completions?.[habitId]) {
       completions[habitId] = {};
     }
-    completions[habitId][date] = completed === 0 ? 1 : 0;
+    completions[habitId][date] =
+      completed === habit?.frequency ? 0 : completed + 1;
     set({ completions });
 
     // Only save to storage if it's a manual habit
