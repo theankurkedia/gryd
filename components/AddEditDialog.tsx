@@ -368,7 +368,7 @@ export function AddEditDialog(props: Props) {
               }
               max={5}
               editable={true}
-              onEditPress={() => {}}
+              color={selectedHabit?.color || COLORS_PALETTE.cyan}
             />
           )}
         </ScrollView>

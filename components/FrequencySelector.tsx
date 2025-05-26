@@ -14,17 +14,17 @@ interface FrequencySelectorProps {
   onChange: (value: number) => void;
   max?: number;
   editable?: boolean;
-  onEditPress?: () => void;
+  color?: string;
 }
 
 const DEFAULT_MAX = 5;
 
 export const FrequencySelector: React.FC<FrequencySelectorProps> = ({
+  color = COLORS_PALETTE.cyan,
   value,
   onChange,
   max = DEFAULT_MAX,
   editable = true,
-  onEditPress,
 }) => {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
@@ -62,7 +62,7 @@ export const FrequencySelector: React.FC<FrequencySelectorProps> = ({
                 styles.progressSquare,
                 {
                   backgroundColor: getContributionColor(
-                    COLORS_PALETTE.cyan,
+                    color || COLORS_PALETTE.cyan,
                     i,
                     value
                   ),
