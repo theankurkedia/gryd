@@ -18,7 +18,7 @@ import Animated, {
 import { useHabitsStore } from '../store';
 import { DataSource, Habit } from '../types';
 import { DeleteDialog } from './DeleteDialog';
-import { COLORS_PALETTE } from '../constants/Colors';
+import { COLORS_PALETTE } from '../constants/colors';
 import DateTimePicker, {
   DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
