@@ -4,6 +4,7 @@
 
 const tintColorLight = '#0a7ea4';
 const tintColorDark = '#fff';
+const defaultDarkCell = '#151B23';
 
 export const Colors = {
   light: {
@@ -26,7 +27,7 @@ export const Colors = {
 
 // Store only the base colors
 export const COLORS_PALETTE: Record<string, string> = {
-  green: '#39D353',
+  green: '#56D364',
   red: '#f94144',
   orange: '#f8961e',
   lightOrange: '#f9844a',
@@ -35,6 +36,7 @@ export const COLORS_PALETTE: Record<string, string> = {
   blue: '#168aad',
   purple: '#e0aaff',
   violet: '#8B5CF6',
+  gitlab: '#4e65cd',
   pink: '#EC4899',
   darkGreen: '#1b4332',
   teal: '#43aa8b',
@@ -78,19 +80,9 @@ export const getContributionColor = (
   currentFrequency: number,
   maxFrequency: number
 ): string => {
-  // Allow the user to set the max frequency to 6 and the min frequency to 1
-  const MAX_FREQUENCY_LIMIT = 6;
-  const MIN_FREQUENCY_LIMIT = 1;
-
-  if (
-    maxFrequency > MAX_FREQUENCY_LIMIT ||
-    currentFrequency > MAX_FREQUENCY_LIMIT
-  ) {
-    maxFrequency = MAX_FREQUENCY_LIMIT;
-  }
-
-  if (maxFrequency < MIN_FREQUENCY_LIMIT) {
-    maxFrequency = MIN_FREQUENCY_LIMIT;
+  // If no frequency, return the lightest version
+  if (currentFrequency === 0) {
+    return defaultDarkCell;
   }
 
   // If maxFrequency is 1, we only need two states
@@ -98,8 +90,16 @@ export const getContributionColor = (
     return currentFrequency === 1 ? baseColor : withOpacity(baseColor, 0.2);
   }
 
-  // Calculate opacity based on the ratio of current frequency to max frequency
-  // This creates a smooth gradient from dim (0.2) to full (1.0)
-  const opacity = 0.1 + (currentFrequency / maxFrequency) * 0.9;
+  // Calculate which level (1-5) the current frequency falls into
+  const numLevels = Math.min(5, maxFrequency);
+  const stepSize = maxFrequency / numLevels;
+
+  // Determine which level (1-based) the current frequency belongs to
+  const level = Math.min(Math.ceil(currentFrequency / stepSize), numLevels);
+
+  // Map level to opacity (0.2 to 1.0 across 5 levels)
+  const opacityLevels = [0.2, 0.4, 0.6, 0.8, 1.0];
+  const opacity = opacityLevels[level - 1];
+
   return withOpacity(baseColor, opacity);
 };
