@@ -15,7 +15,7 @@ A habit tracking app
 - [x] Add reminders
 - [x] Release Web App
 - [x] Add external source option for data too (like Github/Gitlab)
-- [ ] Add frequency options
+- [x] Add frequency options
 - [ ] Release build for Android
 - [ ] Add export/import for the data
 - [ ] Add option to sign in and sync progress across devices
