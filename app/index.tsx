@@ -4,15 +4,15 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
-  View,
   Text,
+  View,
 } from 'react-native';
-import { Calendar } from '../components/Calendar';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AddEditDialog } from '../components/AddEditDialog';
 import { AppBar } from '../components/AppBar';
-import { useHabitsStore } from '../store';
+import { Calendar } from '../components/Calendar';
 import { CalendarSkeleton } from '../components/CalendarSkeleton';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useHabitsStore } from '../store';
 import { Habit } from '../types';
 import { registerForPushNotificationsAsync } from '../utils/notifications';
 
@@ -20,11 +20,18 @@ export default function App() {
   const [selectedHabit, setSelectedHabit] = useState<Habit>();
   const [isAddHabitDialogVisible, setIsAddHabitDialogVisible] = useState(false);
 
-  const { habits, initialiseData, isInitialising, saveNotifToken } =
-    useHabitsStore();
+  const {
+    habits,
+    initialiseHabits,
+    initialiseCompletions,
+    isInitialisingHabits,
+    saveNotifToken,
+  } = useHabitsStore();
 
   useEffect(() => {
-    initialiseData();
+    initialiseHabits();
+    initialiseCompletions();
+
     if (Platform.OS === 'android') {
       registerForPushNotificationsAsync().then(token => {
         if (token) {
@@ -33,7 +40,7 @@ export default function App() {
         }
       });
     }
-  }, []);
+  }, [initialiseHabits, initialiseCompletions]);
 
   const openAddEditDialog = (habit?: Habit) => {
     if (habit) {
@@ -54,7 +61,7 @@ export default function App() {
       <SafeAreaView style={styles.container}>
         <AppBar onAddHabit={openAddEditDialog} />
         <ScrollView contentContainerStyle={styles.scrollView}>
-          {isInitialising ? (
+          {isInitialisingHabits ? (
             <View style={styles.content}>
               <CalendarSkeleton />
             </View>

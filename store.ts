@@ -13,8 +13,9 @@ interface HabitsStore {
   habits: Habit[];
   completions: Completion;
   notifToken?: string;
-  isInitialising: boolean;
-  initialiseData: () => Promise<void>;
+  isInitialisingHabits: boolean;
+  initialiseHabits: () => Promise<void>;
+  initialiseCompletions: () => Promise<void>;
   addHabit: (habit: Habit) => Promise<void>;
   editHabit: (habit: Habit) => Promise<void>;
   deleteHabit: (habitId: string) => Promise<void>;
@@ -27,19 +28,26 @@ interface HabitsStore {
 
 export const useHabitsStore = create<HabitsStore>((set, get) => ({
   habits: [],
-  isInitialising: true,
+  isInitialisingHabits: true,
   completions: {},
-  initialiseData: async () => {
-    set({ isInitialising: true });
+  initialiseHabits: async () => {
     let habits = await getHabitsData();
-
+    set({ habits });
+    set({ isInitialisingHabits: false });
+  },
+  initialiseCompletions: async () => {
     // Get all manual completions
     let completions = await getHabitCompletionsFromDb();
+    set({ completions });
 
-    if (habits?.some(h => h.dataSource && h.dataSource !== DataSource.Manual)) {
+    if (
+      get().habits?.some(
+        h => h.dataSource && h.dataSource !== DataSource.Manual
+      )
+    ) {
       await Promise.all(
-        habits
-          ?.filter(
+        get()
+          .habits?.filter(
             h => h.dataSource !== DataSource?.Manual && h.dataSourceIdentifier
           )
           ?.map(async h => {
@@ -59,9 +67,8 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
           }) || []
       );
     }
-    set({ habits });
+
     set({ completions });
-    set({ isInitialising: false });
   },
   addHabit: async (habit: Habit) => {
     const habits = get().habits;
@@ -72,14 +79,14 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
     });
     set({ habits });
     await saveHabitsData(habits);
-    get().initialiseData();
+    get().initialiseHabits();
   },
   editHabit: async (habit: Habit) => {
     const habits = get().habits;
     const updatedHabits = habits.map(h => (h.id === habit.id ? habit : h));
     set({ habits: updatedHabits });
     await saveHabitsData(updatedHabits);
-    get().initialiseData();
+    get().initialiseHabits();
   },
   deleteHabit: async (habitId: string) => {
     const habit = get().habits.find(h => h.id === habitId);

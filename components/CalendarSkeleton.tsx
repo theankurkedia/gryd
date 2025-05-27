@@ -1,15 +1,22 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
 
-const BOX_SIZE = 10;
-const MARGIN = 2;
-const GRID_SIZE = BOX_SIZE + MARGIN * 2;
-const TOTAL_DAYS = 364;
+const GRID_SIZE = 10 + 2 * 2;
 const WEEKS = 52;
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export function CalendarSkeleton() {
   const animatedValue = new Animated.Value(0);
+
+  // Pre-generate random values to avoid re-calculation on each render
+  const randomValues = useMemo(
+    () =>
+      Array.from({ length: 364 }, () => ({
+        minOpacity: Math.random() * 0.3,
+        maxOpacity: Math.random() * 0.5,
+      })),
+    []
+  );
 
   useEffect(() => {
     Animated.loop(
@@ -17,38 +24,39 @@ export function CalendarSkeleton() {
         Animated.timing(animatedValue, {
           toValue: 1,
           duration: 1000,
-          useNativeDriver: true,
+          useNativeDriver: false, // Changed to false to support backgroundColor animation
         }),
         Animated.timing(animatedValue, {
           toValue: 0,
           duration: 1000,
-          useNativeDriver: true,
+          useNativeDriver: false, // Changed to false to support backgroundColor animation
         }),
       ])
     ).start();
   }, []);
 
   const renderGrid = () => {
-    return Array.from({ length: TOTAL_DAYS }).map((_, index) => {
-      const dayOfWeek = index % 7;
-      const weekNumber = Math.floor(index / 7);
-
-      return (
-        <View
-          key={index}
-          style={[
-            styles.contributionBox,
-            {
-              position: 'absolute',
-              top: dayOfWeek * GRID_SIZE,
-              left: weekNumber * GRID_SIZE,
-            },
-          ]}
-        />
-      );
-    });
+    return Array.from({ length: 364 }).map((_, index) => (
+      <Animated.View
+        key={index}
+        style={[
+          styles.contributionBox,
+          {
+            position: 'absolute',
+            top: (index % 7) * 14,
+            left: Math.floor(index / 7) * 14,
+            backgroundColor: animatedValue.interpolate({
+              inputRange: [0, 1],
+              outputRange: [
+                `rgba(86, 211, 100, ${randomValues[index].minOpacity})`,
+                `rgba(86, 211, 100, ${randomValues[index].maxOpacity})`,
+              ],
+            }),
+          },
+        ]}
+      />
+    ));
   };
-
   const renderWeekdayLabels = () => {
     return WEEKDAYS.map(day => <View key={day} style={styles.weekdayLabel} />);
   };
@@ -160,9 +168,9 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   contributionBox: {
-    width: BOX_SIZE,
-    height: BOX_SIZE,
-    margin: MARGIN,
+    width: 10,
+    height: 10,
+    margin: 2,
     borderRadius: 2,
     backgroundColor: '#161B22',
   },
