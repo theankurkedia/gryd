@@ -1,5 +1,5 @@
-import { icons, Trash, X } from 'lucide-react-native';
-import React, { useCallback, useEffect, useState } from 'react';
+import { icons, Trash, X, ChevronDown } from 'lucide-react-native';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import {
   Dimensions,
   ScrollView,
@@ -26,8 +26,8 @@ import {
   cancelScheduledNotification,
   setHabitReminder,
 } from '../utils/notifications';
-import { Picker } from '@react-native-picker/picker';
 import { FrequencySelector } from './FrequencySelector';
+import { Picker } from './Picker';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const PADDING_HORIZONTAL = 20;
@@ -73,7 +73,7 @@ export function AddEditDialog(props: Props) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-
+  const [showDataSourceDropdown, setShowDataSourceDropdown] = useState(false);
   useEffect(() => {
     setIsMounted(true);
     return () => setIsMounted(false);
@@ -86,6 +86,7 @@ export function AddEditDialog(props: Props) {
       setSelectedHabit(undefined);
     }
     setIconSearch('');
+    setShowDataSourceDropdown(false);
   }, [props.habit]);
 
   useEffect(() => {
@@ -95,6 +96,9 @@ export function AddEditDialog(props: Props) {
         stiffness: 100,
       });
     });
+    if (!props.visible) {
+      setShowDataSourceDropdown(false);
+    }
   }, [props.visible]);
 
   const rBottomSheetStyle = useAnimatedStyle(() => {
@@ -246,22 +250,18 @@ export function AddEditDialog(props: Props) {
           </View>
           <View>
             <Text style={styles.subtitle}>Data Source</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={selectedHabit?.dataSource ?? DataSource.Manual}
-                onValueChange={(value: DataSource) =>
-                  setSelectedHabit(
-                    prev => ({ ...(prev ?? {}), dataSource: value }) as Habit
-                  )
-                }
-                style={styles.picker}
-                dropdownIconColor="#fff"
-              >
-                <Picker.Item label="Manual" value={DataSource.Manual} />
-                <Picker.Item label="GitHub" value={DataSource.GitHub} />
-                <Picker.Item label="GitLab" value={DataSource.GitLab} />
-              </Picker>
-            </View>
+            <Picker
+              selectedHabit={selectedHabit}
+              onValueChange={(value: string) =>
+                setSelectedHabit(
+                  prev =>
+                    ({
+                      ...(prev ?? {}),
+                      dataSource: value as DataSource,
+                    }) as Habit
+                )
+              }
+            />
           </View>
           {selectedHabit?.dataSource &&
             selectedHabit?.dataSource !== DataSource.Manual && (
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
     top: 0,
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
-    zIndex: 1000,
+    zIndex: 900,
   },
   header: {
     flexDirection: 'row',
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
   },
   timeText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 14,
   },
   placeholderText: {
     color: '#6B7280',
@@ -506,21 +506,45 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginHorizontal: 20,
     marginBottom: 8,
-    overflow: 'hidden',
+    position: 'relative',
   },
-  picker: {
-    color: '#fff',
-    height: 40,
-    backgroundColor: '#374151',
+  pickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 12,
-    textAlignVertical: 'center',
-    ...Platform.select({
-      web: {
-        outlineStyle: 'none',
-        outlineWidth: 0,
-        outline: 'none',
-        borderWidth: 0,
-      },
-    }),
+  },
+  pickerText: {
+    color: '#fff',
+    fontSize: 14,
+  },
+  overlayDropdown: {
+    position: 'absolute',
+    backgroundColor: '#374151',
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#4B5563',
+    zIndex: 1001,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  dropdownItem: {
+    padding: 12,
+  },
+  selectedDropdownItem: {
+    backgroundColor: '#3B82F6',
+  },
+  dropdownItemText: {
+    color: '#fff',
+    fontSize: 14,
+  },
+  selectedDropdownItemText: {
+    fontWeight: 'bold',
   },
 });
