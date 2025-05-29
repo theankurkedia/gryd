@@ -1,5 +1,5 @@
 import { DataSource } from '@/types';
-
+import Constants from 'expo-constants';
 /**
  * Fetches user contribution data from external service (ex. GitLab/Github)
  * @param username - The external service (ex. GitLab/Github) username to fetch contributions for
@@ -14,10 +14,10 @@ export async function fetchExternalContributionData(
 
     switch (service) {
       case DataSource.GitLab:
-        contributionEndpoint = process.env.EXPO_PUBLIC_GITLAB_ACTIVITY_ENDPOINT;
+        contributionEndpoint = Constants.expoConfig?.extra?.GITLAB_ENDPOINT;
         break;
       case DataSource.GitHub:
-        contributionEndpoint = process.env.EXPO_PUBLIC_GITHUB_ACTIVITY_ENDPOINT;
+        contributionEndpoint = Constants.expoConfig?.extra?.GITHUB_ENDPOINT;
         break;
       default:
         throw new Error(`Unsupported service: ${service}`);
