@@ -8,6 +8,7 @@ import {
 import { Completion, Habit, DataSource } from './types';
 import { fetchExternalContributionData } from './services/external-data-sources';
 import { DEFAULT_FREQUENCY } from './constants/frequency';
+import { sanitiseHabitsToPersist } from './utils/data';
 
 interface HabitsStore {
   habits: Habit[];
@@ -19,9 +20,7 @@ interface HabitsStore {
   addHabit: (habit: Habit) => Promise<void>;
   editHabit: (habit: Habit) => Promise<void>;
   deleteHabit: (habitId: string) => Promise<void>;
-  getHabitCompletions: (habitId: string) => {
-    [date: string]: number;
-  };
+  getHabitCompletions: (habitId: string) => Record<string, number>;
   updateHabitCompletion: (date: string, habitId: string) => Promise<void>;
   saveNotifToken: (token: string) => void;
 }
@@ -32,7 +31,13 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
   completions: {},
   initialiseHabits: async () => {
     let habits = await getHabitsData();
-    set({ habits });
+    set({
+      habits: habits.map(h => ({
+        ...h,
+        loading:
+          !h.dataSource || h.dataSource === DataSource.Manual ? false : true,
+      })),
+    });
     set({ isInitialisingHabits: false });
   },
   initialiseCompletions: async () => {
@@ -40,35 +45,59 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
     let completions = await getHabitCompletionsFromDb();
     set({ completions });
 
-    if (
-      get().habits?.some(
-        h => h.dataSource && h.dataSource !== DataSource.Manual
-      )
-    ) {
-      await Promise.all(
-        get()
-          .habits?.filter(
-            h => h.dataSource !== DataSource?.Manual && h.dataSourceIdentifier
-          )
-          ?.map(async h => {
-            try {
-              const externalCompletions = await fetchExternalContributionData(
-                h.dataSource as Exclude<DataSource, 'manual'>,
-                h.dataSourceIdentifier as string
-              );
-              completions = {
-                ...completions,
-                [h.id]: externalCompletions?.data,
-              };
-              h.frequency = DEFAULT_FREQUENCY[h.dataSource];
-            } catch (error) {
-              console.error(error);
-            }
-          }) || []
-      );
-    }
+    // Fetch external data asynchronously without blocking
+    const habitsWithExternalData =
+      get().habits?.filter(
+        h =>
+          h.dataSource &&
+          h.dataSource !== DataSource.Manual &&
+          h.dataSourceIdentifier
+      ) || [];
 
-    set({ completions });
+    if (habitsWithExternalData.length > 0) {
+      // Process each habit independently without waiting for all to complete
+      habitsWithExternalData.forEach(async h => {
+        try {
+          const externalCompletions = await fetchExternalContributionData(
+            h.dataSource as Exclude<DataSource, 'manual'>,
+            h.dataSourceIdentifier as string
+          );
+
+          // Update completions for this specific habit
+          set(state => ({
+            habits: state.habits.map(habit =>
+              h.id === habit.id
+                ? {
+                    ...habit,
+                    frequency: h.frequency ?? DEFAULT_FREQUENCY[h.dataSource],
+                    loading: false,
+                    error: undefined,
+                  }
+                : habit
+            ),
+            completions: {
+              ...state.completions,
+              [h.id]: externalCompletions?.data,
+            },
+          }));
+        } catch (error) {
+          set(state => ({
+            habits: state.habits.map(habit =>
+              h.id === habit.id
+                ? {
+                    ...habit,
+                    frequency: h.frequency ?? DEFAULT_FREQUENCY[h.dataSource],
+                    loading: false,
+                    error:
+                      error instanceof Error ? error.message : 'Unknown error',
+                  }
+                : habit
+            ),
+          }));
+          console.error(error);
+        }
+      });
+    }
   },
   addHabit: async (habit: Habit) => {
     const habits = get().habits;
@@ -78,14 +107,14 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
       createdAt: new Date().toISOString(),
     });
     set({ habits });
-    await saveHabitsData(habits);
+    await saveHabitsData(sanitiseHabitsToPersist(habits));
     get().initialiseHabits();
   },
   editHabit: async (habit: Habit) => {
     const habits = get().habits;
     const updatedHabits = habits.map(h => (h.id === habit.id ? habit : h));
     set({ habits: updatedHabits });
-    await saveHabitsData(updatedHabits);
+    await saveHabitsData(sanitiseHabitsToPersist(updatedHabits));
     get().initialiseHabits();
   },
   deleteHabit: async (habitId: string) => {
@@ -103,7 +132,7 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
     // Remove the habit
     const updatedHabits = get().habits.filter(habit => habit.id !== habitId);
     set({ habits: updatedHabits });
-    await saveHabitsData(updatedHabits);
+    await saveHabitsData(sanitiseHabitsToPersist(updatedHabits));
   },
   setHabits: (habits: Habit[]) => set({ habits }),
   getHabitCompletions: (habitId: string) => {
@@ -118,8 +147,11 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
       completions[habitId] = {};
     }
     completions[habitId][date] =
-      completed === habit?.frequency ? 0 : completed + 1;
-    set({ completions });
+      completed >= (habit?.frequency ?? 1) ? 0 : completed + 1;
+
+    if (!habit?.dataSource || habit?.dataSource === DataSource.Manual) {
+      set({ completions });
+    }
 
     // Only save to storage if it's a manual habit
     if (!habit?.dataSource || habit?.dataSource === DataSource.Manual) {

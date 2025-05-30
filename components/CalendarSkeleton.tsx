@@ -1,3 +1,4 @@
+import { COLORS_PALETTE, withOpacity } from '@/constants/colors';
 import React, { useEffect, useMemo } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
 
@@ -95,22 +96,84 @@ export function CalendarSkeleton() {
 
         <View style={styles.contributionWrapper}>
           <View style={styles.monthLabelsContainer}>{renderMonthLabels()}</View>
-          <View
-            style={[
-              styles.contributionGrid,
-              {
-                width: WEEKS * GRID_SIZE,
-                height: 7 * GRID_SIZE,
-              },
-            ]}
-          >
-            {renderGrid()}
-          </View>
+          <CalendarGridSkeleton />
         </View>
       </View>
     </Animated.View>
   );
 }
+
+interface CalendarGridSkeletonProps {
+  color?: string;
+}
+
+export const CalendarGridSkeleton = ({
+  color = COLORS_PALETTE.green,
+}: CalendarGridSkeletonProps) => {
+  const animatedValue = new Animated.Value(0);
+  const randomValues = useMemo(
+    () =>
+      Array.from({ length: 364 }, () => ({
+        minOpacity: Math.random() * 0.3,
+        maxOpacity: Math.random() * 0.5,
+      })),
+    []
+  );
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(animatedValue, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: false,
+        }),
+        Animated.timing(animatedValue, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: false,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  const renderGrid = () => {
+    return Array.from({ length: 364 }).map((_, index) => (
+      <Animated.View
+        key={index}
+        style={[
+          styles.contributionBox,
+          {
+            position: 'absolute',
+            top: (index % 7) * 14,
+            left: Math.floor(index / 7) * 14,
+            backgroundColor: animatedValue.interpolate({
+              inputRange: [0, 1],
+              outputRange: [
+                withOpacity(color, randomValues[index].minOpacity),
+                withOpacity(color, randomValues[index].maxOpacity),
+              ],
+            }),
+          },
+        ]}
+      />
+    ));
+  };
+
+  return (
+    <View
+      style={[
+        styles.contributionGrid,
+        {
+          width: WEEKS * GRID_SIZE,
+          height: 7 * GRID_SIZE,
+        },
+      ]}
+    >
+      {renderGrid()}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {

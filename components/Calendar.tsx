@@ -13,6 +13,7 @@ import { Check } from 'lucide-react-native';
 import Icon from './Icon';
 import { COLORS_PALETTE, getContributionColor } from '../constants/colors';
 import { cancelScheduledNotification } from '../utils/notifications';
+import { CalendarGridSkeleton } from './CalendarSkeleton';
 
 interface Props {
   habit: Habit;
@@ -74,8 +75,6 @@ export function Calendar({ habit, onClick }: Props) {
     cancelScheduledNotification(habit?.id);
     scrollViewRef.current?.scrollToEnd({ animated: false });
   }, []);
-
-  if (!habit) return null;
 
   const getContributionCount = () => {
     return calendarData.reduce((sum, day) => sum + day.completed, 0);
@@ -200,17 +199,21 @@ export function Calendar({ habit, onClick }: Props) {
             <View style={styles.monthLabelsContainer}>
               {renderMonthLabels()}
             </View>
-            <View
-              style={[
-                styles.contributionGrid,
-                {
-                  width: WEEKS * GRID_SIZE,
-                  height: 7 * GRID_SIZE,
-                },
-              ]}
-            >
-              {renderGrid()}
-            </View>
+            {habit.loading ? (
+              <CalendarGridSkeleton color={habit?.color} />
+            ) : (
+              <View
+                style={[
+                  styles.contributionGrid,
+                  {
+                    width: WEEKS * GRID_SIZE,
+                    height: 7 * GRID_SIZE,
+                  },
+                ]}
+              >
+                {renderGrid()}
+              </View>
+            )}
           </View>
         </ScrollView>
       </View>
