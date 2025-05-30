@@ -33,12 +33,10 @@ export const COLORS_PALETTE: Record<string, string> = {
   lightOrange: '#f9844a',
   yellow: '#eeef20',
   cyan: '#06B6D4',
-  blue: '#168aad',
   purple: '#e0aaff',
   violet: '#8B5CF6',
   gitlab: '#4e65cd',
   pink: '#EC4899',
-  darkGreen: '#1b4332',
   teal: '#43aa8b',
   lightGreen: '#66BB6A',
   navy: '#277da1',
@@ -63,7 +61,7 @@ const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
 /**
  * Generates a color variant with the specified opacity
  */
-const withOpacity = (hex: string, opacity: number): string => {
+export const withOpacity = (hex: string, opacity: number): string => {
   const { r, g, b } = hexToRgb(hex);
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 };

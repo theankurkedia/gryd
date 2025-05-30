@@ -4,7 +4,7 @@ export enum DataSource {
   GitLab = 'gitlab',
 }
 
-export interface Habit {
+export interface PersistentHabit {
   id: string;
   name: string;
   description: string;
@@ -18,11 +18,12 @@ export interface Habit {
   frequency?: number;
 }
 
-export interface Completion {
-  [key: string]: {
-    [date: string]: number;
-  };
+export interface Habit extends PersistentHabit {
+  loading?: boolean;
+  error?: string;
 }
+
+export interface Completion extends Record<string, Record<string, number>> {}
 
 export interface Storage {
   habits: Habit[];

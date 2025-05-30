@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Completion, Habit, Storage } from '../types';
+import { Completion, Habit } from '../types';
 
 const STORAGE_HABITS_KEY = 'gryd-habits';
 const STORAGE_COMPLETE_KEY = 'gryd-completions';
