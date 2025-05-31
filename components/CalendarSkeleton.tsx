@@ -1,10 +1,7 @@
 import { COLORS_PALETTE, withOpacity } from '@/constants/colors';
+import { GRID_SIZE, WEEKDAYS, WEEKS } from '@/constants/date';
 import React, { useEffect, useMemo } from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
-
-const GRID_SIZE = 10 + 2 * 2;
-const WEEKS = 52;
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+import { Animated, StyleSheet, View } from 'react-native';
 
 export function CalendarSkeleton() {
   const animatedValue = new Animated.Value(0);

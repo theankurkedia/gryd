@@ -1,13 +1,13 @@
 import { create } from 'zustand';
+import { DEFAULT_FREQUENCY } from './constants/frequency';
 import {
   getHabitCompletionsFromDb,
   getHabitsData,
   saveCompletionsData,
   saveHabitsData,
 } from './services/db';
-import { Completion, Habit, DataSource } from './types';
 import { fetchExternalContributionData } from './services/external-data-sources';
-import { DEFAULT_FREQUENCY } from './constants/frequency';
+import { Completion, DataSource, Habit } from './types';
 import { sanitiseHabitsToPersist } from './utils/data';
 
 interface HabitsStore {

@@ -1,31 +1,32 @@
-import { icons, Trash, X, ChevronDown } from 'lucide-react-native';
-import React, { useCallback, useEffect, useState, useRef } from 'react';
+import { formatTime } from '@/utils/date';
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from '@react-native-community/datetimepicker';
+import { icons, Trash, X } from 'lucide-react-native';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Dimensions,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  Platform,
 } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
+import { COLORS_PALETTE } from '../constants/colors';
 import { useHabitsStore } from '../store';
 import { DataSource, Habit } from '../types';
-import { DeleteDialog } from './DeleteDialog';
-import { COLORS_PALETTE } from '../constants/colors';
-import DateTimePicker, {
-  DateTimePickerEvent,
-} from '@react-native-community/datetimepicker';
 import {
   cancelScheduledNotification,
   setHabitReminder,
 } from '../utils/notifications';
+import { DeleteDialog } from './DeleteDialog';
 import { FrequencySelector } from './FrequencySelector';
 import { Picker } from './Picker';
 
@@ -41,10 +42,6 @@ interface Props {
   onClose: () => void;
   habit?: Habit;
 }
-
-const formatTime = (hours: number, minutes: number): string => {
-  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-};
 
 const getVisibleIcons = (iconSearch: string, selectedIcon?: string) => {
   const allIcons = Object.entries(icons);

@@ -1,31 +1,25 @@
-import React, { useMemo, useRef, useEffect } from 'react';
+import { GRID_SIZE, TOTAL_DAYS, WEEKDAYS, WEEKS } from '@/constants/date';
+import { Check } from 'lucide-react-native';
+import React, { useEffect, useMemo, useRef } from 'react';
 import {
-  View,
+  ScrollView,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  StyleSheet,
-  ScrollView,
+  View,
 } from 'react-native';
-import { formatDate } from '../utils/date';
+import { COLORS_PALETTE, getContributionColor } from '../constants/colors';
 import { useHabitsStore } from '../store';
 import { DataSource, Habit } from '../types';
-import { Check } from 'lucide-react-native';
-import Icon from './Icon';
-import { COLORS_PALETTE, getContributionColor } from '../constants/colors';
+import { formatDate } from '../utils/date';
 import { cancelScheduledNotification } from '../utils/notifications';
 import { CalendarGridSkeleton } from './CalendarSkeleton';
+import Icon from './Icon';
 
 interface Props {
   habit: Habit;
   onClick: () => void;
 }
-
-const BOX_SIZE = 10;
-const MARGIN = 2;
-const GRID_SIZE = BOX_SIZE + MARGIN * 2;
-const TOTAL_DAYS = 364; // 52 weeks * 7 days
-const WEEKS = 52;
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export function Calendar({ habit, onClick }: Props) {
   const scrollViewRef = useRef<ScrollView>(null);
@@ -226,6 +220,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0D1117',
     borderRadius: 8,
     padding: 16,
+    maxWidth: 796,
   },
   header: {
     flexDirection: 'row',
