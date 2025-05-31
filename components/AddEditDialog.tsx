@@ -1,31 +1,33 @@
-import { icons, Trash, X, ChevronDown } from 'lucide-react-native';
-import React, { useCallback, useEffect, useState, useRef } from 'react';
+import { formatTime } from '@/utils/date';
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from '@react-native-community/datetimepicker';
+import { icons, Trash, X } from 'lucide-react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Dimensions,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  Platform,
 } from 'react-native';
 import Animated, {
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
+import { COLORS_PALETTE } from '../constants/colors';
 import { useHabitsStore } from '../store';
 import { DataSource, Habit } from '../types';
-import { DeleteDialog } from './DeleteDialog';
-import { COLORS_PALETTE } from '../constants/colors';
-import DateTimePicker, {
-  DateTimePickerEvent,
-} from '@react-native-community/datetimepicker';
 import {
   cancelScheduledNotification,
   setHabitReminder,
 } from '../utils/notifications';
+import { DeleteDialog } from './DeleteDialog';
 import { FrequencySelector } from './FrequencySelector';
 import { Picker } from './Picker';
 
@@ -41,10 +43,6 @@ interface Props {
   onClose: () => void;
   habit?: Habit;
 }
-
-const formatTime = (hours: number, minutes: number): string => {
-  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-};
 
 const getVisibleIcons = (iconSearch: string, selectedIcon?: string) => {
   const allIcons = Object.entries(icons);
@@ -63,6 +61,50 @@ const getVisibleIcons = (iconSearch: string, selectedIcon?: string) => {
   ];
 };
 
+// Memoized icon button component to prevent unnecessary re-renders
+const IconButton = React.memo(
+  ({
+    name,
+    Icon,
+    isSelected,
+    onPress,
+  }: {
+    name: string;
+    Icon: any;
+    isSelected: boolean;
+    onPress: (name: string) => void;
+  }) => (
+    <TouchableOpacity
+      style={[styles.iconButton, isSelected && styles.selectedIconButton]}
+      onPress={() => onPress(name)}
+    >
+      <Icon color={isSelected ? '#fff' : '#6B7280'} size={24} />
+    </TouchableOpacity>
+  )
+);
+
+// Memoized color button component
+const ColorButton = React.memo(
+  ({
+    color,
+    isSelected,
+    onPress,
+  }: {
+    color: string;
+    isSelected: boolean;
+    onPress: (color: string) => void;
+  }) => (
+    <TouchableOpacity
+      style={[
+        styles.colorButton,
+        { backgroundColor: color },
+        isSelected && styles.selectedColorButton,
+      ]}
+      onPress={() => onPress(color)}
+    />
+  )
+);
+
 export function AddEditDialog(props: Props) {
   const [selectedHabit, setSelectedHabit] = useState<Habit | undefined>(
     props.habit
@@ -74,6 +116,7 @@ export function AddEditDialog(props: Props) {
   const [isMounted, setIsMounted] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showDataSourceDropdown, setShowDataSourceDropdown] = useState(false);
+
   useEffect(() => {
     setIsMounted(true);
     return () => setIsMounted(false);
@@ -90,14 +133,24 @@ export function AddEditDialog(props: Props) {
   }, [props.habit]);
 
   useEffect(() => {
-    requestAnimationFrame(() => {
-      translateY.value = withSpring(props.visible ? 0 : SCREEN_HEIGHT, {
-        damping: 50,
-        stiffness: 100,
+    if (props.visible) {
+      translateY.value = withSpring(0, {
+        damping: 20,
+        stiffness: 90,
+        mass: 0.8,
       });
-    });
-    if (!props.visible) {
-      setShowDataSourceDropdown(false);
+    } else {
+      translateY.value = withSpring(
+        SCREEN_HEIGHT,
+        {
+          damping: 20,
+          stiffness: 90,
+          mass: 0.8,
+        },
+        () => {
+          runOnJS(setShowDataSourceDropdown)(false);
+        }
+      );
     }
   }, [props.visible]);
 
@@ -105,9 +158,9 @@ export function AddEditDialog(props: Props) {
     return {
       transform: [{ translateY: translateY.value }],
     };
-  });
+  }, []);
 
-  const handleAddHabit = async () => {
+  const handleAddHabit = useCallback(async () => {
     if (!selectedHabit?.name) return;
 
     if (props.habit) {
@@ -130,7 +183,7 @@ export function AddEditDialog(props: Props) {
     }
     setSelectedHabit(undefined);
     props.onClose();
-  };
+  }, [selectedHabit, props.habit, editHabitStore, addHabit, props.onClose]);
 
   const handleDelete = useCallback(() => {
     setShowDeleteDialog(true);
@@ -145,57 +198,114 @@ export function AddEditDialog(props: Props) {
     }
   }, [props.habit?.id, deleteHabit, props.onClose]);
 
-  const visibleIcons = getVisibleIcons(iconSearch, props.habit?.icon);
+  // Memoize visible icons to prevent recalculation on every render
+  const visibleIcons = useMemo(
+    () => getVisibleIcons(iconSearch, props.habit?.icon),
+    [iconSearch, props.habit?.icon]
+  );
 
-  const handleTimeChange = (
-    event: DateTimePickerEvent,
-    selectedDate?: Date
-  ) => {
-    setShowTimePicker(false);
-    if (event.type === 'set' && selectedDate) {
-      const hours = selectedDate.getHours();
-      const minutes = selectedDate.getMinutes();
-      setSelectedHabit(
-        prev =>
-          ({
-            ...(prev ?? {}),
-            dailyReminderTime: formatTime(hours, minutes),
-          }) as Habit
-      );
-    }
-  };
+  const handleTimeChange = useCallback(
+    (event: DateTimePickerEvent, selectedDate?: Date) => {
+      setShowTimePicker(false);
+      if (event.type === 'set' && selectedDate) {
+        const hours = selectedDate.getHours();
+        const minutes = selectedDate.getMinutes();
+        setSelectedHabit(
+          prev =>
+            ({
+              ...(prev ?? {}),
+              dailyReminderTime: formatTime(hours, minutes),
+            }) as Habit
+        );
+      }
+    },
+    []
+  );
 
-  const renderColorGrid = () => (
-    <View style={styles.colorContainer}>
-      {Object.values(COLORS_PALETTE).map(color => (
-        <TouchableOpacity
-          key={color}
-          style={[
-            styles.colorButton,
-            { backgroundColor: color },
-            (selectedHabit?.color
-              ? selectedHabit.color === color
-              : COLORS_PALETTE[0] === color) && styles.selectedColorButton,
-          ]}
-          onPress={() =>
-            setSelectedHabit(prev => ({ ...(prev ?? {}), color }) as Habit)
-          }
-        />
-      ))}
-    </View>
+  const handleIconPress = useCallback((iconName: string) => {
+    setSelectedHabit(prev => ({ ...(prev ?? {}), icon: iconName }) as Habit);
+  }, []);
+
+  const handleColorPress = useCallback((color: string) => {
+    setSelectedHabit(prev => ({ ...(prev ?? {}), color }) as Habit);
+  }, []);
+
+  const handleNameChange = useCallback((text: string) => {
+    setSelectedHabit(prev => ({ ...(prev ?? {}), name: text }) as Habit);
+  }, []);
+
+  const handleDescriptionChange = useCallback((text: string) => {
+    setSelectedHabit(prev => ({ ...(prev ?? {}), description: text }) as Habit);
+  }, []);
+
+  const handleDataSourceChange = useCallback((value: string) => {
+    setSelectedHabit(
+      prev =>
+        ({
+          ...(prev ?? {}),
+          dataSource: value as DataSource,
+        }) as Habit
+    );
+  }, []);
+
+  const handleDataSourceIdentifierChange = useCallback((text: string) => {
+    setSelectedHabit(
+      prev =>
+        ({
+          ...(prev ?? {}),
+          dataSourceIdentifier: text,
+        }) as Habit
+    );
+  }, []);
+
+  const handleFrequencyChange = useCallback((freq: number) => {
+    setSelectedHabit(prev => ({ ...(prev ?? {}), frequency: freq }) as Habit);
+  }, []);
+
+  // Memoize color grid to prevent unnecessary re-renders
+  const renderColorGrid = useMemo(
+    () => (
+      <View style={styles.colorContainer}>
+        {Object.values(COLORS_PALETTE).map(color => (
+          <ColorButton
+            key={color}
+            color={color}
+            isSelected={
+              selectedHabit?.color
+                ? selectedHabit.color === color
+                : COLORS_PALETTE[0] === color
+            }
+            onPress={handleColorPress}
+          />
+        ))}
+      </View>
+    ),
+    [selectedHabit?.color, handleColorPress]
+  );
+
+  // Memoize icon grid to prevent unnecessary re-renders
+  const renderIconGrid = useMemo(
+    () => (
+      <View style={styles.iconContainer}>
+        {visibleIcons.map(([name, Icon]) => (
+          <IconButton
+            key={name}
+            name={name}
+            Icon={Icon}
+            isSelected={selectedHabit?.icon === name}
+            onPress={handleIconPress}
+          />
+        ))}
+      </View>
+    ),
+    [visibleIcons, selectedHabit?.icon, handleIconPress]
   );
 
   if (!isMounted) return null;
 
   return (
     <>
-      <Animated.View
-        style={[
-          styles.bottomSheetContainer,
-          rBottomSheetStyle,
-          { transform: [{ translateY: props.visible ? 0 : SCREEN_HEIGHT }] },
-        ]}
-      >
+      <Animated.View style={[styles.bottomSheetContainer, rBottomSheetStyle]}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.closeButton} onPress={props.onClose}>
             <X color="#fff" size={24} />
@@ -222,17 +332,17 @@ export function AddEditDialog(props: Props) {
             <Text style={styles.headerButtonText}>Save</Text>
           </TouchableOpacity>
         </View>
-        <ScrollView>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          removeClippedSubviews={Platform.OS === 'android'}
+        >
           <TextInput
             style={styles.input}
             placeholder="Habit Name"
             placeholderTextColor="#6B7280"
             value={selectedHabit?.name ?? ''}
-            onChangeText={text =>
-              setSelectedHabit(
-                prev => ({ ...(prev ?? {}), name: text }) as Habit
-              )
-            }
+            onChangeText={handleNameChange}
             underlineColorAndroid="transparent"
           />
           <View>
@@ -241,26 +351,14 @@ export function AddEditDialog(props: Props) {
               style={styles.input}
               placeholderTextColor="#6B7280"
               value={selectedHabit?.description}
-              onChangeText={text =>
-                setSelectedHabit(
-                  prev => ({ ...(prev ?? {}), description: text }) as Habit
-                )
-              }
+              onChangeText={handleDescriptionChange}
             />
           </View>
           <View>
             <Text style={styles.subtitle}>Data Source</Text>
             <Picker
               selectedHabit={selectedHabit}
-              onValueChange={(value: string) =>
-                setSelectedHabit(
-                  prev =>
-                    ({
-                      ...(prev ?? {}),
-                      dataSource: value as DataSource,
-                    }) as Habit
-                )
-              }
+              onValueChange={handleDataSourceChange}
             />
           </View>
           {selectedHabit?.dataSource &&
@@ -272,15 +370,7 @@ export function AddEditDialog(props: Props) {
                   placeholder={`Enter ${selectedHabit?.dataSource} username`}
                   placeholderTextColor="#6B7280"
                   value={selectedHabit?.dataSourceIdentifier}
-                  onChangeText={text =>
-                    setSelectedHabit(
-                      prev =>
-                        ({
-                          ...(prev ?? {}),
-                          dataSourceIdentifier: text,
-                        }) as Habit
-                    )
-                  }
+                  onChangeText={handleDataSourceIdentifierChange}
                 />
               </View>
             )}
@@ -297,28 +387,11 @@ export function AddEditDialog(props: Props) {
           <ScrollView
             style={styles.iconGrid}
             contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            removeClippedSubviews={Platform.OS === 'android'}
+            nestedScrollEnabled={true}
           >
-            <View style={styles.iconContainer}>
-              {visibleIcons.map(([name, Icon]) => (
-                <TouchableOpacity
-                  key={name}
-                  style={[
-                    styles.iconButton,
-                    selectedHabit?.icon === name && styles.selectedIconButton,
-                  ]}
-                  onPress={() =>
-                    setSelectedHabit(
-                      prev => ({ ...(prev ?? {}), icon: name }) as Habit
-                    )
-                  }
-                >
-                  <Icon
-                    color={selectedHabit?.icon === name ? '#fff' : '#6B7280'}
-                    size={24}
-                  />
-                </TouchableOpacity>
-              ))}
-            </View>
+            {renderIconGrid}
           </ScrollView>
           {Platform.OS === 'android' && (
             <View>
@@ -355,17 +428,13 @@ export function AddEditDialog(props: Props) {
           )}
           <View>
             <Text style={styles.subtitle}>Select a color</Text>
-            <View style={styles.colorGrid}>{renderColorGrid()}</View>
+            <View style={styles.colorGrid}>{renderColorGrid}</View>
           </View>
           {(!selectedHabit?.dataSource ||
             selectedHabit?.dataSource === DataSource.Manual) && (
             <FrequencySelector
               value={selectedHabit?.frequency || 1}
-              onChange={freq =>
-                setSelectedHabit(
-                  prev => ({ ...(prev ?? {}), frequency: freq }) as Habit
-                )
-              }
+              onChange={handleFrequencyChange}
               max={5}
               editable={true}
               color={selectedHabit?.color || COLORS_PALETTE.cyan}
@@ -539,10 +608,6 @@ const styles = StyleSheet.create({
   },
   selectedDropdownItem: {
     backgroundColor: '#3B82F6',
-  },
-  dropdownItemText: {
-    color: '#fff',
-    fontSize: 14,
   },
   selectedDropdownItemText: {
     fontWeight: 'bold',

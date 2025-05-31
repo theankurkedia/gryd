@@ -1,13 +1,13 @@
 import { create } from 'zustand';
+import { DEFAULT_FREQUENCY } from './constants/frequency';
 import {
   getHabitCompletionsFromDb,
   getHabitsData,
   saveCompletionsData,
   saveHabitsData,
 } from './services/db';
-import { Completion, Habit, DataSource } from './types';
 import { fetchExternalContributionData } from './services/external-data-sources';
-import { DEFAULT_FREQUENCY } from './constants/frequency';
+import { Completion, DataSource, Habit } from './types';
 import { sanitiseHabitsToPersist } from './utils/data';
 
 interface HabitsStore {
@@ -16,6 +16,7 @@ interface HabitsStore {
   notifToken?: string;
   isInitialisingHabits: boolean;
   initialiseHabits: () => Promise<void>;
+  syncHabits: () => Promise<void>;
   initialiseCompletions: () => Promise<void>;
   addHabit: (habit: Habit) => Promise<void>;
   editHabit: (habit: Habit) => Promise<void>;
@@ -39,6 +40,10 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
       })),
     });
     set({ isInitialisingHabits: false });
+  },
+  syncHabits: async () => {
+    const habits = await getHabitsData();
+    set({ habits });
   },
   initialiseCompletions: async () => {
     // Get all manual completions
@@ -108,14 +113,14 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
     });
     set({ habits });
     await saveHabitsData(sanitiseHabitsToPersist(habits));
-    get().initialiseHabits();
+    get().syncHabits();
   },
   editHabit: async (habit: Habit) => {
     const habits = get().habits;
     const updatedHabits = habits.map(h => (h.id === habit.id ? habit : h));
     set({ habits: updatedHabits });
     await saveHabitsData(sanitiseHabitsToPersist(updatedHabits));
-    get().initialiseHabits();
+    get().syncHabits();
   },
   deleteHabit: async (habitId: string) => {
     const habit = get().habits.find(h => h.id === habitId);
@@ -146,8 +151,12 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
     if (!completions?.[habitId]) {
       completions[habitId] = {};
     }
-    completions[habitId][date] =
-      completed >= (habit?.frequency ?? 1) ? 0 : completed + 1;
+
+    if (completed < (habit?.frequency ?? 1)) {
+      completions[habitId][date] = completed + 1;
+    } else {
+      delete completions[habitId][date];
+    }
 
     if (!habit?.dataSource || habit?.dataSource === DataSource.Manual) {
       set({ completions });

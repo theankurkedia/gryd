@@ -1,13 +1,13 @@
+import { COLORS_PALETTE, getContributionColor } from '@/constants/colors';
+import { Minus, Plus } from 'lucide-react-native';
 import React from 'react';
 import {
-  View,
+  Animated,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  StyleSheet,
-  Animated,
+  View,
 } from 'react-native';
-import { Minus, Plus } from 'lucide-react-native';
-import { COLORS_PALETTE, getContributionColor } from '@/constants/colors';
 
 interface FrequencySelectorProps {
   value: number;

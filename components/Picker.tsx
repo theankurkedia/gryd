@@ -1,13 +1,13 @@
 import { DataSource, Habit } from '@/types';
 import { ChevronDown } from 'lucide-react-native';
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
+  Modal,
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Modal,
-  Pressable,
 } from 'react-native';
 
 interface PickerProps {
