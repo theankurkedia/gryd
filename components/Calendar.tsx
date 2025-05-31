@@ -1,6 +1,6 @@
 import { GRID_SIZE, TOTAL_DAYS, WEEKDAYS, WEEKS } from '@/constants/date';
 import { Check } from 'lucide-react-native';
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -26,8 +26,9 @@ export function Calendar({ habit, onClick }: Props) {
 
   const { getHabitCompletions, updateHabitCompletion } = useHabitsStore();
 
+  const todayFormatted = useMemo(() => formatDate(new Date()), []);
   const habitCompletions = getHabitCompletions(habit.id);
-  const todaysCompletions = habitCompletions?.[formatDate(new Date())] ?? 0;
+  const todaysCompletions = habitCompletions?.[todayFormatted] ?? 0;
 
   const calendarData = useMemo(() => {
     if (!habit) return [];
@@ -70,46 +71,59 @@ export function Calendar({ habit, onClick }: Props) {
     scrollViewRef.current?.scrollToEnd({ animated: false });
   }, []);
 
-  const getContributionCount = () => {
-    return calendarData.reduce((sum, day) => sum + day.completed, 0);
-  };
+  const contributionCount = useMemo(
+    () => calendarData.reduce((sum, day) => sum + day.completed, 0),
+    [calendarData]
+  );
 
-  const renderGrid = () => {
-    const today = formatDate(new Date());
-
+  const gridData = useMemo(() => {
     return calendarData.map((day, index) => {
       const date = new Date(day.date);
       const dayOfWeek = date.getDay(); // 0-6, where 0 is Sunday
       const weekNumber = Math.floor(index / 7);
 
+      return {
+        key: index,
+        dayOfWeek,
+        weekNumber,
+        completed: day.completed,
+        date: day.date,
+        isToday: day.date === todayFormatted,
+      };
+    });
+  }, [calendarData, todayFormatted]);
+
+  const grid = useMemo(() => {
+    return gridData.map(gridItem => {
       return (
         <TouchableOpacity
-          key={index}
+          key={gridItem.key}
           style={[
             styles.contributionBox,
             {
               backgroundColor: getContributionColor(
                 habit?.color || COLORS_PALETTE.cyan,
-                day.completed,
+                gridItem.completed,
                 habit?.frequency || 1
               ),
               position: 'absolute',
-              top: dayOfWeek * GRID_SIZE,
-              left: weekNumber * GRID_SIZE,
-              borderWidth: day.date === today ? 1 : 0,
+              top: gridItem.dayOfWeek * GRID_SIZE,
+              left: gridItem.weekNumber * GRID_SIZE,
+              borderWidth: gridItem.isToday ? 1 : 0,
               borderColor: '#ffffff',
             },
           ]}
         />
       );
     });
-  };
+  }, [gridData, habit?.color, habit?.frequency]);
 
-  const renderMonthLabels = () => {
+  const monthLabelsData = useMemo(() => {
     const months: { [key: string]: number } = {};
     const currentMonthKey = new Date().toLocaleString('default', {
       month: 'short',
     });
+
     calendarData.forEach((day, index) => {
       const date = new Date(day.date);
       const monthKey = date.toLocaleString('default', { month: 'short' });
@@ -125,7 +139,11 @@ export function Calendar({ habit, onClick }: Props) {
       }
     });
 
-    return Object.entries(months).map(([month, weekNumber]) => (
+    return Object.entries(months);
+  }, [calendarData]);
+
+  const monthLabels = useMemo(() => {
+    return monthLabelsData.map(([month, weekNumber]) => (
       <Text
         key={month}
         style={[
@@ -138,7 +156,15 @@ export function Calendar({ habit, onClick }: Props) {
         {month}
       </Text>
     ));
-  };
+  }, [monthLabelsData]);
+
+  const handleTodayButtonPress = useCallback(
+    (e: any) => {
+      e.stopPropagation();
+      updateHabitCompletion(todayFormatted, habit.id);
+    },
+    [updateHabitCompletion, todayFormatted, habit.id]
+  );
 
   return (
     <View style={styles.container}>
@@ -149,7 +175,7 @@ export function Calendar({ habit, onClick }: Props) {
             <Text style={styles.habitName}>{habit.name}</Text>
           </View>
           <Text style={styles.contributionCount}>
-            {getContributionCount()} contributions in the last year
+            {contributionCount} contributions in the last year
           </Text>
         </View>
         {(!habit.dataSource || habit.dataSource === DataSource.Manual) && (
@@ -164,10 +190,7 @@ export function Calendar({ habit, onClick }: Props) {
                 ),
               },
             ]}
-            onPress={e => {
-              e.stopPropagation();
-              updateHabitCompletion(formatDate(new Date()), habit.id);
-            }}
+            onPress={handleTodayButtonPress}
           >
             <Check color="#fff" size={20} />
           </TouchableOpacity>
@@ -190,9 +213,7 @@ export function Calendar({ habit, onClick }: Props) {
           contentContainerStyle={styles.scrollViewContent}
         >
           <View style={styles.contributionWrapper}>
-            <View style={styles.monthLabelsContainer}>
-              {renderMonthLabels()}
-            </View>
+            <View style={styles.monthLabelsContainer}>{monthLabels}</View>
             {habit.loading ? (
               <CalendarGridSkeleton color={habit?.color} />
             ) : (
@@ -205,7 +226,7 @@ export function Calendar({ habit, onClick }: Props) {
                   },
                 ]}
               >
-                {renderGrid()}
+                {grid}
               </View>
             )}
           </View>

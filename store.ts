@@ -151,8 +151,12 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
     if (!completions?.[habitId]) {
       completions[habitId] = {};
     }
-    completions[habitId][date] =
-      completed >= (habit?.frequency ?? 1) ? 0 : completed + 1;
+
+    if (completed < (habit?.frequency ?? 1)) {
+      completions[habitId][date] = completed + 1;
+    } else {
+      delete completions[habitId][date];
+    }
 
     if (!habit?.dataSource || habit?.dataSource === DataSource.Manual) {
       set({ completions });
