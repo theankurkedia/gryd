@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   Platform,
   SafeAreaView,
@@ -8,18 +8,15 @@ import {
   View,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { AddEditDialog } from '../components/AddEditDialog';
 import { AppBar } from '../components/AppBar';
 import { Calendar } from '../components/Calendar';
 import { CalendarSkeleton } from '../components/CalendarSkeleton';
 import { useHabitsStore } from '../store';
 import { Habit } from '../types';
 import { registerForPushNotificationsAsync } from '../utils/notifications';
+import { router } from 'expo-router';
 
 export default function App() {
-  const [selectedHabit, setSelectedHabit] = useState<Habit>();
-  const [isAddHabitDialogVisible, setIsAddHabitDialogVisible] = useState(false);
-
   const {
     habits,
     initialiseHabits,
@@ -42,24 +39,17 @@ export default function App() {
     }
   }, [initialiseHabits, initialiseCompletions]);
 
-  const openAddEditDialog = (habit?: Habit) => {
-    if (habit) {
-      setSelectedHabit(habit);
-    } else {
-      setSelectedHabit(undefined);
-    }
-    setIsAddHabitDialogVisible(true);
-  };
-
-  const onDialogClose = () => {
-    setIsAddHabitDialogVisible(false);
-    setSelectedHabit(undefined);
+  const handleHabitClick = (habit: Habit) => {
+    router.push({
+      pathname: '/add-edit-habit',
+      params: { habitId: habit.id },
+    });
   };
 
   return (
     <GestureHandlerRootView>
       <SafeAreaView style={styles.container}>
-        <AppBar onAddHabit={openAddEditDialog} />
+        <AppBar />
         <ScrollView contentContainerStyle={styles.scrollView}>
           {isInitialisingHabits ? (
             <View style={styles.content}>
@@ -83,18 +73,13 @@ export default function App() {
                   <Calendar
                     key={habit?.id}
                     habit={habit}
-                    onClick={() => openAddEditDialog(habit)}
+                    onClick={() => handleHabitClick(habit)}
                   />
                 ))
               )}
             </View>
           )}
         </ScrollView>
-        <AddEditDialog
-          habit={selectedHabit}
-          visible={isAddHabitDialogVisible}
-          onClose={onDialogClose}
-        />
       </SafeAreaView>
     </GestureHandlerRootView>
   );

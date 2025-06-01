@@ -52,6 +52,7 @@ export default {
       // Environment variables accessible via Constants.expoConfig.extra
       GITHUB_ENDPOINT: process.env.EXPO_PUBLIC_GITHUB_ACTIVITY_ENDPOINT,
       GITLAB_ENDPOINT: process.env.EXPO_PUBLIC_GITLAB_ACTIVITY_ENDPOINT,
+      FEEDBACK_EMAIL: process.env.EXPO_PUBLIC_FEEDBACK_EMAIL,
     },
   },
 };
