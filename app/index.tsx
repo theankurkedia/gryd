@@ -3,6 +3,7 @@ import {
   Platform,
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   View,
@@ -48,6 +49,7 @@ export default function App() {
 
   return (
     <GestureHandlerRootView>
+      <StatusBar barStyle="light-content" backgroundColor="#0d1b2a" />
       <SafeAreaView style={styles.container}>
         <AppBar />
         <ScrollView contentContainerStyle={styles.scrollView}>
