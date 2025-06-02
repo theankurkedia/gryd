@@ -96,7 +96,7 @@ export function Calendar({ habit, onClick }: Props) {
   const grid = useMemo(() => {
     return gridData.map(gridItem => {
       return (
-        <TouchableOpacity
+        <View
           key={gridItem.key}
           style={[
             styles.contributionBox,
