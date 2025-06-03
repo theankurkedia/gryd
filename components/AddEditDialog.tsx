@@ -115,7 +115,7 @@ export function AddEditDialog(props: Props) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [showDataSourceDropdown, setShowDataSourceDropdown] = useState(false);
+  // const [showDataSourceDropdown, setShowDataSourceDropdown] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -129,7 +129,7 @@ export function AddEditDialog(props: Props) {
       setSelectedHabit(undefined);
     }
     setIconSearch('');
-    setShowDataSourceDropdown(false);
+    // setShowDataSourceDropdown(false);
   }, [props.habit]);
 
   useEffect(() => {
@@ -148,7 +148,7 @@ export function AddEditDialog(props: Props) {
           mass: 0.8,
         },
         () => {
-          runOnJS(setShowDataSourceDropdown)(false);
+          // runOnJS(setShowDataSourceDropdown)(false);
         }
       );
     }

@@ -45,12 +45,6 @@ export async function registerForPushNotificationsAsync() {
   return token;
 }
 
-interface ScheduleNotificationProps {
-  title: string;
-  body: string;
-  trigger: any;
-}
-
 interface SetHabitReminderProps {
   habitName: string;
   hours: number;
