@@ -16,6 +16,7 @@ interface HabitsStore {
   habits: Habit[];
   completions: Completion;
   settings: Settings;
+  getSetting: (setting: keyof Settings) => Settings[keyof Settings];
   getAllSettings: () => Settings;
   setSettings: (
     setting: keyof Settings,
@@ -39,6 +40,7 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
   isInitialisingHabits: true,
   settings: {},
   completions: {},
+  getSetting: (setting: keyof Settings) => get().settings[setting],
   getAllSettings: () => get().settings,
   setSettings: (setting: keyof Settings, value: Settings[keyof Settings]) => {
     const updatedSettings = { ...get().settings, [setting]: value };
@@ -46,9 +48,6 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
     saveSettingsToDb(updatedSettings);
   },
   initialiseHabits: async () => {
-    const settings = await getSettingsFromDb();
-    set({ settings });
-
     let habits = await getHabitsData();
     set({
       habits: habits.map(h => ({
@@ -57,7 +56,8 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
           !h.dataSource || h.dataSource === DataSource.Manual ? false : true,
       })),
     });
-    set({ isInitialisingHabits: false });
+    const settings = await getSettingsFromDb();
+    set({ settings, isInitialisingHabits: false });
   },
   syncHabits: async () => {
     const habits = await getHabitsData();

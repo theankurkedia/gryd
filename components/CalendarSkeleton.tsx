@@ -1,5 +1,9 @@
 import { COLORS_PALETTE, withOpacity } from '@/constants/colors';
-import { GRID_SIZE, WEEKDAYS, WEEKS } from '@/constants/date';
+import {
+  GRID_SIZE,
+  WEEKDAYS_STARTING_MONDAY as WEEKDAYS,
+  WEEKS,
+} from '@/constants/date';
 import React, { useEffect, useMemo } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 

@@ -1,4 +1,10 @@
-import { GRID_SIZE, TOTAL_DAYS, WEEKDAYS, WEEKS } from '@/constants/date';
+import {
+  GRID_SIZE,
+  TOTAL_DAYS,
+  WEEKDAYS_STARTING_MONDAY,
+  WEEKDAYS_STARTING_SUNDAY,
+  WEEKS,
+} from '@/constants/date';
 import { Check } from 'lucide-react-native';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
@@ -23,7 +29,14 @@ interface Props {
 
 export function Calendar({ habit, onClick }: Props) {
   const scrollViewRef = useRef<ScrollView>(null);
+  const { getSetting } = useHabitsStore();
 
+  const weekStartsOnSunday = getSetting('weekStartsOnSunday');
+  const weekdays = useMemo(
+    () =>
+      weekStartsOnSunday ? WEEKDAYS_STARTING_SUNDAY : WEEKDAYS_STARTING_MONDAY,
+    [weekStartsOnSunday]
+  );
   const { getHabitCompletions, updateHabitCompletion } = useHabitsStore();
 
   const todayFormatted = useMemo(() => formatDate(new Date()), []);
@@ -35,7 +48,7 @@ export function Calendar({ habit, onClick }: Props) {
 
     const habitData = getHabitCompletions(habit?.id);
     const today = new Date();
-    const daysUntilEndOfWeek = 6 - today.getDay(); // Days remaining until Saturday
+    const daysUntilEndOfWeek = 7 - today.getDay(); // Days remaining until Saturday
     const totalDaysToShow = TOTAL_DAYS - daysUntilEndOfWeek; // Reduce past days to accommodate future days
 
     // Get past dates up to today
@@ -199,7 +212,7 @@ export function Calendar({ habit, onClick }: Props) {
 
       <View style={styles.calendarContainer}>
         <View style={styles.weekdayLabels}>
-          {WEEKDAYS.map(day => (
+          {weekdays.map(day => (
             <Text key={day} style={styles.weekdayLabel}>
               {day}
             </Text>

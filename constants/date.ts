@@ -1,4 +1,4 @@
-export const WEEKDAYS_WITH_SUNDAY_FIRST = [
+export const WEEKDAYS_STARTING_SUNDAY = [
   'Sun',
   'Mon',
   'Tue',
@@ -7,7 +7,15 @@ export const WEEKDAYS_WITH_SUNDAY_FIRST = [
   'Fri',
   'Sat',
 ];
-export const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+export const WEEKDAYS_STARTING_MONDAY = [
+  'Mon',
+  'Tue',
+  'Wed',
+  'Thu',
+  'Fri',
+  'Sat',
+  'Sun',
+];
 
 export const GRID_SIZE = 10 + 2 * 2;
 export const WEEKS = 52;
