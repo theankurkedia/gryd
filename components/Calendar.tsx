@@ -48,7 +48,16 @@ export function Calendar({ habit, onClick }: Props) {
 
     const habitData = getHabitCompletions(habit?.id);
     const today = new Date();
-    const daysUntilEndOfWeek = 7 - today.getDay(); // Days remaining until Saturday
+
+    // Adjust day of week calculation based on week start preference
+    const todayDayOfWeek = today.getDay(); // 0=Sunday, 1=Monday, etc.
+    const adjustedDayOfWeek = weekStartsOnSunday
+      ? todayDayOfWeek
+      : todayDayOfWeek === 0
+        ? 6
+        : todayDayOfWeek - 1; // Monday=0, Sunday=6
+
+    const daysUntilEndOfWeek = 6 - adjustedDayOfWeek; // Days remaining until end of week
     const totalDaysToShow = TOTAL_DAYS - daysUntilEndOfWeek; // Reduce past days to accommodate future days
 
     // Get past dates up to today
@@ -77,7 +86,7 @@ export function Calendar({ habit, onClick }: Props) {
     );
 
     return [...pastDates, ...futureDates];
-  }, [habit?.id, JSON.stringify(habitCompletions)]);
+  }, [habit?.id, JSON.stringify(habitCompletions), weekStartsOnSunday]);
 
   useEffect(() => {
     cancelScheduledNotification(habit?.id);
@@ -93,18 +102,26 @@ export function Calendar({ habit, onClick }: Props) {
     return calendarData.map((day, index) => {
       const date = new Date(day.date);
       const dayOfWeek = date.getDay(); // 0-6, where 0 is Sunday
+
+      // Adjust day of week for grid positioning based on week start preference
+      const adjustedDayOfWeek = weekStartsOnSunday
+        ? dayOfWeek
+        : dayOfWeek === 0
+          ? 6
+          : dayOfWeek - 1; // Monday=0, Sunday=6
+
       const weekNumber = Math.floor(index / 7);
 
       return {
         key: index,
-        dayOfWeek,
+        dayOfWeek: adjustedDayOfWeek,
         weekNumber,
         completed: day.completed,
         date: day.date,
         isToday: day.date === todayFormatted,
       };
     });
-  }, [calendarData, todayFormatted]);
+  }, [calendarData, todayFormatted, weekStartsOnSunday]);
 
   const grid = useMemo(() => {
     return gridData.map(gridItem => {
