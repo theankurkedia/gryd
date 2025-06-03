@@ -15,7 +15,6 @@ import {
   View,
 } from 'react-native';
 import Animated, {
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -115,7 +114,6 @@ export function AddEditDialog(props: Props) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [showDataSourceDropdown, setShowDataSourceDropdown] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -129,7 +127,6 @@ export function AddEditDialog(props: Props) {
       setSelectedHabit(undefined);
     }
     setIconSearch('');
-    setShowDataSourceDropdown(false);
   }, [props.habit]);
 
   useEffect(() => {
@@ -140,17 +137,11 @@ export function AddEditDialog(props: Props) {
         mass: 0.8,
       });
     } else {
-      translateY.value = withSpring(
-        SCREEN_HEIGHT,
-        {
-          damping: 20,
-          stiffness: 90,
-          mass: 0.8,
-        },
-        () => {
-          runOnJS(setShowDataSourceDropdown)(false);
-        }
-      );
+      translateY.value = withSpring(SCREEN_HEIGHT, {
+        damping: 20,
+        stiffness: 90,
+        mass: 0.8,
+      });
     }
   }, [props.visible]);
 

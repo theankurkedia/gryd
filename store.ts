@@ -5,14 +5,23 @@ import {
   getHabitsData,
   saveCompletionsData,
   saveHabitsData,
+  getSettingsFromDb,
+  saveSettingsToDb,
 } from './services/db';
 import { fetchExternalContributionData } from './services/external-data-sources';
-import { Completion, DataSource, Habit } from './types';
+import { Completion, DataSource, Habit, Settings } from './types';
 import { sanitiseHabitsToPersist } from './utils/data';
 
 interface HabitsStore {
   habits: Habit[];
   completions: Completion;
+  settings: Settings;
+  getSetting: (setting: keyof Settings) => Settings[keyof Settings];
+  getAllSettings: () => Settings;
+  setSettings: (
+    setting: keyof Settings,
+    value: Settings[keyof Settings]
+  ) => void;
   notifToken?: string;
   isInitialisingHabits: boolean;
   initialiseHabits: () => Promise<void>;
@@ -29,7 +38,15 @@ interface HabitsStore {
 export const useHabitsStore = create<HabitsStore>((set, get) => ({
   habits: [],
   isInitialisingHabits: true,
+  settings: {},
   completions: {},
+  getSetting: (setting: keyof Settings) => get().settings[setting],
+  getAllSettings: () => get().settings,
+  setSettings: (setting: keyof Settings, value: Settings[keyof Settings]) => {
+    const updatedSettings = { ...get().settings, [setting]: value };
+    set({ settings: updatedSettings });
+    saveSettingsToDb(updatedSettings);
+  },
   initialiseHabits: async () => {
     let habits = await getHabitsData();
     set({
@@ -39,7 +56,8 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
           !h.dataSource || h.dataSource === DataSource.Manual ? false : true,
       })),
     });
-    set({ isInitialisingHabits: false });
+    const settings = await getSettingsFromDb();
+    set({ settings, isInitialisingHabits: false });
   },
   syncHabits: async () => {
     const habits = await getHabitsData();
