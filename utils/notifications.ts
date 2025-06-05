@@ -45,12 +45,6 @@ export async function registerForPushNotificationsAsync() {
   return token;
 }
 
-interface ScheduleNotificationProps {
-  title: string;
-  body: string;
-  trigger: any;
-}
-
 interface SetHabitReminderProps {
   habitName: string;
   hours: number;
@@ -60,7 +54,7 @@ interface SetHabitReminderProps {
 export async function setHabitReminder(params: SetHabitReminderProps) {
   if (Platform.OS === 'android') {
     try {
-      await Notifications.scheduleNotificationAsync({
+      return await Notifications.scheduleNotificationAsync({
         content: {
           title: 'Habit Reminder',
           body: `Time to complete your habit: ${params.habitName}`,
@@ -77,8 +71,8 @@ export async function setHabitReminder(params: SetHabitReminderProps) {
   }
 }
 
-export async function cancelScheduledNotification(habitId: string) {
+export async function cancelScheduledNotification(identifier: string) {
   if (Platform.OS === 'android') {
-    await Notifications.cancelScheduledNotificationAsync(habitId);
+    await Notifications.cancelScheduledNotificationAsync(identifier);
   }
 }

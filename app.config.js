@@ -37,7 +37,13 @@ export default {
           backgroundColor: '#ffffff',
         },
       ],
-      ['expo-notifications'],
+      [
+        'expo-notifications',
+        {
+          icon: './assets/images/icon.png',
+          defaultChannel: 'default',
+        },
+      ],
     ],
     experiments: {
       typedRoutes: true,

@@ -125,27 +125,49 @@ export default function AddEditHabitScreen() {
     setIconSearch('');
   }, [existingHabit]);
 
+  const handleUpdateHabit = useCallback(async () => {
+    if (!selectedHabit?.name) return;
+    const newHabit = { ...selectedHabit };
+    if (
+      newHabit.dailyReminderTime !== existingHabit?.dailyReminderTime ||
+      !existingHabit?.dailyReminderNotificationIdentifier
+    ) {
+      const [hours, minutes] = newHabit.dailyReminderTime
+        .split(':')
+        .map(Number);
+      // Cancel existing notification if editing
+      if (existingHabit?.dailyReminderNotificationIdentifier) {
+        await cancelScheduledNotification(
+          existingHabit.dailyReminderNotificationIdentifier
+        );
+      }
+
+      // Schedule new notification
+      newHabit.dailyReminderNotificationIdentifier = await setHabitReminder({
+        habitName: newHabit.name,
+        hours,
+        minutes,
+      });
+    }
+    editHabitStore(selectedHabit);
+    router.back();
+  }, []);
+
   const handleAddHabit = useCallback(async () => {
     if (!selectedHabit?.name) return;
-
-    if (existingHabit) {
-      editHabitStore(selectedHabit);
-    } else {
-      addHabit(selectedHabit);
-    }
 
     if (selectedHabit.dailyReminderTime) {
       const [hours, minutes] = selectedHabit.dailyReminderTime
         .split(':')
         .map(Number);
-      // Cancel existing notification if editing
-      if (existingHabit?.id) {
-        await cancelScheduledNotification(existingHabit.id);
-      }
-
-      // Schedule new notification
-      await setHabitReminder({ habitName: selectedHabit.name, hours, minutes });
+      selectedHabit.dailyReminderNotificationIdentifier =
+        await setHabitReminder({
+          habitName: selectedHabit.name,
+          hours,
+          minutes,
+        });
     }
+    addHabit(selectedHabit);
     router.back();
   }, [selectedHabit, existingHabit, editHabitStore, addHabit]);
 
@@ -291,7 +313,7 @@ export default function AddEditHabitScreen() {
               styles.headerButton,
               { opacity: selectedHabit?.name ? 1 : 0.5 },
             ]}
-            onPress={handleAddHabit}
+            onPress={existingHabit ? handleUpdateHabit : handleAddHabit}
             disabled={!selectedHabit?.name}
           >
             <Text style={styles.headerButtonText}>Save</Text>
