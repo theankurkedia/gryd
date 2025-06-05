@@ -1,8 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Completion, Habit } from '../types';
+import { Completion, Habit, Settings } from '../types';
 
 const STORAGE_HABITS_KEY = 'gryd-habits';
 const STORAGE_COMPLETE_KEY = 'gryd-completions';
+const STORAGE_SETTINGS_KEY = 'gryd-settings';
 
 // Get habits data
 export const getHabitsData = async (): Promise<Habit[]> => {
@@ -47,4 +48,13 @@ export const updateHabitCompletionInDb = async (
   completions[habitId][date] = frequency;
   await saveCompletionsData(completions);
   return completions[habitId];
+};
+
+export const getSettingsFromDb = async (): Promise<Settings> => {
+  const data = await AsyncStorage.getItem(STORAGE_SETTINGS_KEY);
+  return data ? JSON.parse(data) : {};
+};
+
+export const saveSettingsToDb = async (settings: Settings) => {
+  await AsyncStorage.setItem(STORAGE_SETTINGS_KEY, JSON.stringify(settings));
 };

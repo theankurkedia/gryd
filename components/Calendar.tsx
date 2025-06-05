@@ -1,4 +1,10 @@
-import { GRID_SIZE, TOTAL_DAYS, WEEKDAYS, WEEKS } from '@/constants/date';
+import {
+  GRID_SIZE,
+  TOTAL_DAYS,
+  WEEKDAYS_STARTING_MONDAY,
+  WEEKDAYS_STARTING_SUNDAY,
+  WEEKS,
+} from '@/constants/date';
 import { Check } from 'lucide-react-native';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
@@ -22,7 +28,14 @@ interface Props {
 
 export function Calendar({ habit, onClick }: Props) {
   const scrollViewRef = useRef<ScrollView>(null);
+  const { getSetting } = useHabitsStore();
 
+  const weekStartsOnSunday = getSetting('weekStartsOnSunday');
+  const weekdays = useMemo(
+    () =>
+      weekStartsOnSunday ? WEEKDAYS_STARTING_SUNDAY : WEEKDAYS_STARTING_MONDAY,
+    [weekStartsOnSunday]
+  );
   const { getHabitCompletions, updateHabitCompletion } = useHabitsStore();
 
   const todayFormatted = useMemo(() => formatDate(new Date()), []);
@@ -34,7 +47,16 @@ export function Calendar({ habit, onClick }: Props) {
 
     const habitData = getHabitCompletions(habit?.id);
     const today = new Date();
-    const daysUntilEndOfWeek = 6 - today.getDay(); // Days remaining until Saturday
+
+    // Adjust day of week calculation based on week start preference
+    const todayDayOfWeek = today.getDay(); // 0=Sunday, 1=Monday, etc.
+    const adjustedDayOfWeek = weekStartsOnSunday
+      ? todayDayOfWeek
+      : todayDayOfWeek === 0
+        ? 6
+        : todayDayOfWeek - 1; // Monday=0, Sunday=6
+
+    const daysUntilEndOfWeek = 6 - adjustedDayOfWeek; // Days remaining until end of week
     const totalDaysToShow = TOTAL_DAYS - daysUntilEndOfWeek; // Reduce past days to accommodate future days
 
     // Get past dates up to today
@@ -63,7 +85,7 @@ export function Calendar({ habit, onClick }: Props) {
     );
 
     return [...pastDates, ...futureDates];
-  }, [habit?.id, JSON.stringify(habitCompletions)]);
+  }, [habit?.id, JSON.stringify(habitCompletions), weekStartsOnSunday]);
 
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: false });
@@ -78,18 +100,26 @@ export function Calendar({ habit, onClick }: Props) {
     return calendarData.map((day, index) => {
       const date = new Date(day.date);
       const dayOfWeek = date.getDay(); // 0-6, where 0 is Sunday
+
+      // Adjust day of week for grid positioning based on week start preference
+      const adjustedDayOfWeek = weekStartsOnSunday
+        ? dayOfWeek
+        : dayOfWeek === 0
+          ? 6
+          : dayOfWeek - 1; // Monday=0, Sunday=6
+
       const weekNumber = Math.floor(index / 7);
 
       return {
         key: index,
-        dayOfWeek,
+        dayOfWeek: adjustedDayOfWeek,
         weekNumber,
         completed: day.completed,
         date: day.date,
         isToday: day.date === todayFormatted,
       };
     });
-  }, [calendarData, todayFormatted]);
+  }, [calendarData, todayFormatted, weekStartsOnSunday]);
 
   const grid = useMemo(() => {
     return gridData.map(gridItem => {
@@ -197,7 +227,7 @@ export function Calendar({ habit, onClick }: Props) {
 
       <View style={styles.calendarContainer}>
         <View style={styles.weekdayLabels}>
-          {WEEKDAYS.map(day => (
+          {weekdays.map(day => (
             <Text key={day} style={styles.weekdayLabel}>
               {day}
             </Text>

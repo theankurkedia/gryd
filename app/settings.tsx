@@ -1,20 +1,24 @@
+import { useHabitsStore } from '@/store';
+import { Settings } from '@/types';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { ChevronRight, X } from 'lucide-react-native';
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   Linking,
   Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 
 export default function SettingsScreen() {
-  const handleSendFeedback = () => {
+  const { settings, setSettings } = useHabitsStore();
+  const handleSendFeedback = useCallback(() => {
     const email = Constants.expoConfig?.extra?.FEEDBACK_EMAIL;
     const subject = 'Gryd App Feedback';
     const body = 'Hi, I would like to share feedback about the Gryd app:\n\n';
@@ -23,7 +27,14 @@ export default function SettingsScreen() {
     Linking.openURL(emailUrl).catch(err => {
       console.error('Error opening email:', err);
     });
-  };
+  }, []);
+
+  const handleUpdateSetting = useCallback(
+    (setting: keyof Settings, value: Settings[keyof Settings]) => {
+      setSettings(setting, value);
+    },
+    []
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -48,6 +59,18 @@ export default function SettingsScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>General</Text>
 
+            <View style={styles.settingItem}>
+              <Text style={styles.settingLabel}>Week starts on Sunday</Text>
+              <Switch
+                value={settings.weekStartsOnSunday}
+                onValueChange={() =>
+                  handleUpdateSetting(
+                    'weekStartsOnSunday',
+                    !settings.weekStartsOnSunday
+                  )
+                }
+              />
+            </View>
             <TouchableOpacity
               style={styles.settingItem}
               onPress={handleSendFeedback}

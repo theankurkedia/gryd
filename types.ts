@@ -30,3 +30,7 @@ export interface Storage {
   habits: Habit[];
   completions: Completion;
 }
+
+export interface Settings {
+  weekStartsOnSunday?: boolean;
+}
