@@ -1,23 +1,17 @@
-import { X, ChevronRight } from 'lucide-react-native';
-import React, { useState } from 'react';
+import Constants from 'expo-constants';
+import { router } from 'expo-router';
+import { ChevronRight, X } from 'lucide-react-native';
+import React from 'react';
 import {
   Linking,
   Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { router } from 'expo-router';
-import Constants from 'expo-constants';
-
-interface SettingsState {
-  notifications: boolean;
-  weekStartsOnSunday: boolean;
-}
 
 export default function SettingsScreen() {
   const handleSendFeedback = () => {

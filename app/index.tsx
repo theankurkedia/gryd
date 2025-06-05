@@ -14,7 +14,6 @@ import { Calendar } from '../components/Calendar';
 import { CalendarSkeleton } from '../components/CalendarSkeleton';
 import { useHabitsStore } from '../store';
 import { Habit } from '../types';
-import { registerForPushNotificationsAsync } from '../utils/notifications';
 import { router } from 'expo-router';
 
 export default function App() {
@@ -23,21 +22,11 @@ export default function App() {
     initialiseHabits,
     initialiseCompletions,
     isInitialisingHabits,
-    saveNotifToken,
   } = useHabitsStore();
 
   useEffect(() => {
     initialiseHabits();
     initialiseCompletions();
-
-    if (Platform.OS === 'android') {
-      registerForPushNotificationsAsync().then(token => {
-        if (token) {
-          // Store token in your backend or local storage
-          // saveNotifToken(token.data);
-        }
-      });
-    }
   }, [initialiseHabits, initialiseCompletions]);
 
   const handleHabitClick = (habit: Habit) => {
@@ -71,7 +60,7 @@ export default function App() {
                   )}
                 </View>
               ) : (
-                habits?.map((habit: any) => (
+                habits?.map((habit: Habit) => (
                   <Calendar
                     key={habit?.id}
                     habit={habit}

@@ -1,4 +1,5 @@
 import { icons } from 'lucide-react-native';
+import React from 'react';
 
 interface Props {
   name: string;
