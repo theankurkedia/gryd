@@ -1,4 +1,4 @@
-import { formatTime } from '@/utils/date';
+import { formatTime, timeStringToTodayDate } from '@/utils/date';
 import DateTimePicker, {
   DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
@@ -20,6 +20,7 @@ import { useHabitsStore } from '../store';
 import { DataSource, Habit } from '../types';
 import {
   cancelScheduledNotification,
+  registerForPushNotificationsAsync,
   setHabitReminder,
 } from '../utils/notifications';
 import { DeleteDialog } from '../components/DeleteDialog';
@@ -60,7 +61,7 @@ const IconButton = React.memo(
     onPress,
   }: {
     name: string;
-    Icon: any;
+    Icon: React.ElementType;
     isSelected: boolean;
     onPress: (name: string) => void;
   }) => (
@@ -73,6 +74,7 @@ const IconButton = React.memo(
   )
 );
 
+IconButton.displayName = 'IconButton';
 // Memoized color button component
 const ColorButton = React.memo(
   ({
@@ -95,6 +97,7 @@ const ColorButton = React.memo(
   )
 );
 
+ColorButton.displayName = 'ColorButton';
 export default function AddEditHabitScreen() {
   const params = useLocalSearchParams();
   const habitId = params.habitId as string;
@@ -128,23 +131,33 @@ export default function AddEditHabitScreen() {
   const handleAddHabit = useCallback(async () => {
     if (!selectedHabit?.name) return;
 
+    if (
+      selectedHabit.dailyReminderTime &&
+      selectedHabit.dailyReminderTime !== existingHabit?.dailyReminderTime
+    ) {
+      // Cancel existing notification if editing
+      const oldNotificationId =
+        existingHabit?.dailyReminderNotificationIdentifier;
+      if (oldNotificationId) {
+        await cancelScheduledNotification(oldNotificationId);
+      }
+
+      const [hours, minutes] = selectedHabit.dailyReminderTime
+        ?.split(':')
+        .map(Number);
+
+      // Schedule new notification
+      selectedHabit.dailyReminderNotificationIdentifier =
+        await setHabitReminder({
+          habitName: selectedHabit.name,
+          hours,
+          minutes,
+        });
+    }
     if (existingHabit) {
       editHabitStore(selectedHabit);
     } else {
       addHabit(selectedHabit);
-    }
-
-    if (selectedHabit.dailyReminderTime) {
-      const [hours, minutes] = selectedHabit.dailyReminderTime
-        .split(':')
-        .map(Number);
-      // Cancel existing notification if editing
-      if (existingHabit?.id) {
-        await cancelScheduledNotification(existingHabit.id);
-      }
-
-      // Schedule new notification
-      await setHabitReminder({ habitName: selectedHabit.name, hours, minutes });
     }
     router.back();
   }, [selectedHabit, existingHabit, editHabitStore, addHabit]);
@@ -359,39 +372,46 @@ export default function AddEditHabitScreen() {
           >
             {renderIconGrid}
           </ScrollView>
-          {Platform.OS === 'android' && (
-            <View>
-              <Text style={styles.subtitle}>Daily Reminder Time</Text>
-              <TouchableOpacity
-                onPress={() => setShowTimePicker(true)}
-                style={styles.input}
-              >
-                <Text
-                  style={[
-                    styles.timeText,
-                    !selectedHabit?.dailyReminderTime && styles.placeholderText,
-                  ]}
+          {Platform.OS === 'android' &&
+            (!selectedHabit?.dataSource ||
+              selectedHabit?.dataSource === DataSource.Manual) && (
+              <View>
+                <Text style={styles.subtitle}>Daily Reminder Time</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (Platform.OS === 'android') {
+                      registerForPushNotificationsAsync();
+                    }
+                    setShowTimePicker(true);
+                  }}
+                  style={styles.input}
                 >
-                  {selectedHabit?.dailyReminderTime
-                    ? selectedHabit.dailyReminderTime
-                    : 'Select time'}
-                </Text>
-              </TouchableOpacity>
-              {showTimePicker && (
-                <DateTimePicker
-                  value={
-                    selectedHabit?.dailyReminderTime
-                      ? new Date(selectedHabit.dailyReminderTime)
-                      : new Date()
-                  }
-                  mode="time"
-                  is24Hour={true}
-                  display={'default'}
-                  onChange={handleTimeChange}
-                />
-              )}
-            </View>
-          )}
+                  <Text
+                    style={[
+                      styles.timeText,
+                      !selectedHabit?.dailyReminderTime &&
+                        styles.placeholderText,
+                    ]}
+                  >
+                    {selectedHabit?.dailyReminderTime
+                      ? selectedHabit.dailyReminderTime
+                      : 'Select time'}
+                  </Text>
+                </TouchableOpacity>
+                {showTimePicker && (
+                  <DateTimePicker
+                    value={
+                      selectedHabit?.dailyReminderTime
+                        ? timeStringToTodayDate(selectedHabit.dailyReminderTime)
+                        : new Date()
+                    }
+                    mode="time"
+                    display="default"
+                    onChange={handleTimeChange}
+                  />
+                )}
+              </View>
+            )}
           <View>
             <Text style={styles.subtitle}>Select a color</Text>
             <View style={styles.colorGrid}>{renderColorGrid}</View>
@@ -416,6 +436,8 @@ export default function AddEditHabitScreen() {
     </>
   );
 }
+
+AddEditHabitScreen.displayName = 'AddEditHabitScreen';
 
 const styles = StyleSheet.create({
   container: {

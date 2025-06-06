@@ -18,7 +18,6 @@ import { COLORS_PALETTE, getContributionColor } from '../constants/colors';
 import { useHabitsStore } from '../store';
 import { DataSource, Habit } from '../types';
 import { formatDate } from '../utils/date';
-import { cancelScheduledNotification } from '../utils/notifications';
 import { CalendarGridSkeleton } from './CalendarSkeleton';
 import Icon from './Icon';
 
@@ -89,7 +88,6 @@ export function Calendar({ habit, onClick }: Props) {
   }, [habit?.id, JSON.stringify(habitCompletions), weekStartsOnSunday]);
 
   useEffect(() => {
-    cancelScheduledNotification(habit?.id);
     scrollViewRef.current?.scrollToEnd({ animated: false });
   }, []);
 

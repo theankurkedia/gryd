@@ -13,6 +13,8 @@ export function sanitiseHabitsToPersist(habits: Habit[]): PersistentHabit[] {
       dataSource: habit.dataSource,
       dataSourceIdentifier: habit.dataSourceIdentifier,
       frequency: habit.frequency,
+      dailyReminderNotificationIdentifier:
+        habit.dailyReminderNotificationIdentifier,
     };
     return persistentHabit;
   });
