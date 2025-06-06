@@ -128,42 +128,25 @@ export default function AddEditHabitScreen() {
     setIconSearch('');
   }, [existingHabit]);
 
-  const handleUpdateHabit = useCallback(async () => {
-    if (!selectedHabit?.name) return;
-    const newHabit = { ...selectedHabit };
-    if (
-      newHabit.dailyReminderTime &&
-      (newHabit.dailyReminderTime !== existingHabit?.dailyReminderTime ||
-        !existingHabit?.dailyReminderNotificationIdentifier)
-    ) {
-      const [hours, minutes] = newHabit.dailyReminderTime
-        ?.split(':')
-        .map(Number);
-      // Cancel existing notification if editing
-      if (existingHabit?.dailyReminderNotificationIdentifier) {
-        await cancelScheduledNotification(
-          existingHabit.dailyReminderNotificationIdentifier
-        );
-      }
-
-      // Schedule new notification
-      newHabit.dailyReminderNotificationIdentifier = await setHabitReminder({
-        habitName: newHabit.name,
-        hours,
-        minutes,
-      });
-    }
-    editHabitStore(selectedHabit);
-    router.back();
-  }, []);
-
   const handleAddHabit = useCallback(async () => {
     if (!selectedHabit?.name) return;
 
-    if (selectedHabit.dailyReminderTime) {
+    if (
+      selectedHabit.dailyReminderTime &&
+      selectedHabit.dailyReminderTime !== existingHabit?.dailyReminderTime
+    ) {
+      // Cancel existing notification if editing
+      const oldNotificationId =
+        existingHabit?.dailyReminderNotificationIdentifier;
+      if (oldNotificationId) {
+        await cancelScheduledNotification(oldNotificationId);
+      }
+
       const [hours, minutes] = selectedHabit.dailyReminderTime
         ?.split(':')
-        ?.map(Number);
+        .map(Number);
+
+      // Schedule new notification
       selectedHabit.dailyReminderNotificationIdentifier =
         await setHabitReminder({
           habitName: selectedHabit.name,
@@ -171,7 +154,11 @@ export default function AddEditHabitScreen() {
           minutes,
         });
     }
-    addHabit(selectedHabit);
+    if (existingHabit) {
+      editHabitStore(selectedHabit);
+    } else {
+      addHabit(selectedHabit);
+    }
     router.back();
   }, [selectedHabit, existingHabit, editHabitStore, addHabit]);
 
@@ -317,7 +304,7 @@ export default function AddEditHabitScreen() {
               styles.headerButton,
               { opacity: selectedHabit?.name ? 1 : 0.5 },
             ]}
-            onPress={existingHabit ? handleUpdateHabit : handleAddHabit}
+            onPress={handleAddHabit}
             disabled={!selectedHabit?.name}
           >
             <Text style={styles.headerButtonText}>Save</Text>
