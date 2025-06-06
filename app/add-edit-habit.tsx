@@ -1,4 +1,4 @@
-import { formatTime } from '@/utils/date';
+import { formatTime, timeStringToTodayDate } from '@/utils/date';
 import DateTimePicker, {
   DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
@@ -372,43 +372,46 @@ export default function AddEditHabitScreen() {
           >
             {renderIconGrid}
           </ScrollView>
-          {Platform.OS === 'android' && (
-            <View>
-              <Text style={styles.subtitle}>Daily Reminder Time</Text>
-              <TouchableOpacity
-                onPress={() => {
-                  if (Platform.OS === 'android') {
-                    registerForPushNotificationsAsync();
-                  }
-                  setShowTimePicker(true);
-                }}
-                style={styles.input}
-              >
-                <Text
-                  style={[
-                    styles.timeText,
-                    !selectedHabit?.dailyReminderTime && styles.placeholderText,
-                  ]}
+          {Platform.OS === 'android' &&
+            (!selectedHabit?.dataSource ||
+              selectedHabit?.dataSource === DataSource.Manual) && (
+              <View>
+                <Text style={styles.subtitle}>Daily Reminder Time</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (Platform.OS === 'android') {
+                      registerForPushNotificationsAsync();
+                    }
+                    setShowTimePicker(true);
+                  }}
+                  style={styles.input}
                 >
-                  {selectedHabit?.dailyReminderTime
-                    ? selectedHabit.dailyReminderTime
-                    : 'Select time'}
-                </Text>
-              </TouchableOpacity>
-              {showTimePicker && (
-                <DateTimePicker
-                  value={
-                    selectedHabit?.dailyReminderTime
-                      ? new Date(selectedHabit.dailyReminderTime)
-                      : new Date()
-                  }
-                  mode="time"
-                  display="default"
-                  onChange={handleTimeChange}
-                />
-              )}
-            </View>
-          )}
+                  <Text
+                    style={[
+                      styles.timeText,
+                      !selectedHabit?.dailyReminderTime &&
+                        styles.placeholderText,
+                    ]}
+                  >
+                    {selectedHabit?.dailyReminderTime
+                      ? selectedHabit.dailyReminderTime
+                      : 'Select time'}
+                  </Text>
+                </TouchableOpacity>
+                {showTimePicker && (
+                  <DateTimePicker
+                    value={
+                      selectedHabit?.dailyReminderTime
+                        ? timeStringToTodayDate(selectedHabit.dailyReminderTime)
+                        : new Date()
+                    }
+                    mode="time"
+                    display="default"
+                    onChange={handleTimeChange}
+                  />
+                )}
+              </View>
+            )}
           <View>
             <Text style={styles.subtitle}>Select a color</Text>
             <View style={styles.colorGrid}>{renderColorGrid}</View>
