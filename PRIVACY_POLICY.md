@@ -133,10 +133,6 @@ If you have any questions, concerns, or requests regarding this Privacy Policy o
 
 ## Additional Information for Specific Regions
 
-### California Residents (CCPA)
-
-California residents have additional rights under the California Consumer Privacy Act, including the right to request information about data collection and the right to request deletion of personal information.
-
 ### European Union Residents (GDPR)
 
 EU residents have rights under the General Data Protection Regulation, including the right to access, rectify, erase, restrict processing, and data portability.
@@ -145,7 +141,6 @@ EU residents have rights under the General Data Protection Regulation, including
 
 This app complies with applicable privacy laws and regulations, including but not limited to:
 
-- California Consumer Privacy Act (CCPA)
 - General Data Protection Regulation (GDPR)
 - Children's Online Privacy Protection Act (COPPA)
 
