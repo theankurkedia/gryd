@@ -28,7 +28,8 @@ interface Props {
 
 export function Calendar({ habit, onClick }: Props) {
   const scrollViewRef = useRef<ScrollView>(null);
-  const { getSetting } = useHabitsStore();
+  const { getSetting, getHabitCompletions, updateHabitCompletion } =
+    useHabitsStore();
 
   const weekStartsOnSunday = getSetting('weekStartsOnSunday');
   const weekdays = useMemo(
@@ -36,7 +37,6 @@ export function Calendar({ habit, onClick }: Props) {
       weekStartsOnSunday ? WEEKDAYS_STARTING_SUNDAY : WEEKDAYS_STARTING_MONDAY,
     [weekStartsOnSunday]
   );
-  const { getHabitCompletions, updateHabitCompletion } = useHabitsStore();
 
   const todayFormatted = useMemo(() => formatDate(new Date()), []);
   const habitCompletions = getHabitCompletions(habit.id);
