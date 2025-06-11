@@ -33,6 +33,7 @@ interface HabitsStore {
   getHabitCompletions: (habitId: string) => Record<string, number>;
   updateHabitCompletion: (date: string, habitId: string) => Promise<void>;
   saveNotifToken: (token: string) => void;
+  updateCompletionsFromExternalSource: (h: Habit) => Promise<void>;
 }
 
 export const useHabitsStore = create<HabitsStore>((set, get) => ({
@@ -161,6 +162,44 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
   getHabitCompletions: (habitId: string) => {
     const completions = get().completions;
     return completions[habitId];
+  },
+  updateCompletionsFromExternalSource: async (h: Habit) => {
+    try {
+      const externalCompletions = await fetchExternalContributionData(
+        h.dataSource as Exclude<DataSource, 'manual'>,
+        h.dataSourceIdentifier as string
+      );
+
+      // Update completions for this specific habit
+      set(state => ({
+        habits: state.habits.map(habit =>
+          h.id === habit.id
+            ? {
+                ...habit,
+                loading: false,
+                error: undefined,
+              }
+            : habit
+        ),
+        completions: {
+          ...(state.completions || {}),
+          [h.id]: externalCompletions?.data,
+        },
+      }));
+    } catch (error) {
+      set(state => ({
+        habits: state.habits.map(habit =>
+          h.id === habit.id
+            ? {
+                ...habit,
+                loading: false,
+                error: error instanceof Error ? error.message : 'Unknown error',
+              }
+            : habit
+        ),
+      }));
+      console.error(error);
+    }
   },
   updateHabitCompletion: async (date: string, habitId: string) => {
     const habit = get().habits.find(h => h.id === habitId);
