@@ -125,13 +125,18 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
   },
   addHabit: async (habit: Habit) => {
     const habits = get().habits;
-    habits.push({
+    const newHabit = {
       ...habit,
       id: Math.random().toString(36).substring(2, 10),
       createdAt: new Date().toISOString(),
-    });
+      frequency: habit.frequency ?? DEFAULT_FREQUENCY[habit.dataSource],
+    };
+    habits.push(newHabit);
     set({ habits });
     await saveHabitsData(sanitiseHabitsToPersist(habits));
+    if (habit.dataSource && habit.dataSource !== DataSource.Manual) {
+      await get().updateCompletionsFromExternalSource(newHabit);
+    }
     get().syncHabits();
   },
   editHabit: async (habit: Habit) => {
@@ -139,6 +144,9 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
     const updatedHabits = habits.map(h => (h.id === habit.id ? habit : h));
     set({ habits: updatedHabits });
     await saveHabitsData(sanitiseHabitsToPersist(updatedHabits));
+    if (habit.dataSource && habit.dataSource !== DataSource.Manual) {
+      await get().updateCompletionsFromExternalSource(habit);
+    }
     get().syncHabits();
   },
   deleteHabit: async (habitId: string) => {
