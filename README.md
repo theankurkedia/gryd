@@ -16,7 +16,7 @@ A habit tracking app
 - [x] Release Web App
 - [x] Add external source option for data too (like Github/Gitlab)
 - [x] Add frequency options
-- [ ] Re-order the habits
+- [x] Re-order the habits
 - [ ] Release build for Android
 - [ ] Add export/import for the data
 - [ ] Add option to sign in and sync progress across devices
