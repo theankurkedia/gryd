@@ -6,7 +6,7 @@ import {
   DraggableStackProps,
 } from '@mgcrea/react-native-dnd';
 import { router } from 'expo-router';
-import { X } from 'lucide-react-native';
+import { GripHorizontal, X } from 'lucide-react-native';
 import React from 'react';
 import {
   SafeAreaView,
@@ -17,6 +17,9 @@ import {
   View,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import Icon from '../components/Icon';
+import { COLORS_PALETTE } from '../constants/colors';
+
 export default function ReorderHabitsScreen() {
   const habits = useHabitsStore(state => state.habits);
   const editHabits = useHabitsStore(state => state.editHabits);
@@ -51,8 +54,23 @@ export default function ReorderHabitsScreen() {
             >
               {habits.map(habit => (
                 <Draggable key={habit.id} id={habit.id}>
-                  <View style={styles.box}>
-                    <Text>{habit.name}</Text>
+                  <View
+                    style={[
+                      styles.box,
+                      {
+                        backgroundColor: habit.color || COLORS_PALETTE.cyan,
+                      },
+                    ]}
+                  >
+                    <View style={styles.habitContent}>
+                      <View style={styles.habitInfo}>
+                        {habit.icon && (
+                          <Icon name={habit.icon} color="#fff" size={24} />
+                        )}
+                        <Text style={styles.habitName}>{habit.name}</Text>
+                      </View>
+                      <GripHorizontal color="#fff" size={20} />
+                    </View>
                   </View>
                 </Draggable>
               ))}
@@ -85,12 +103,34 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   box: {
-    margin: 24,
-    padding: 24,
-    height: 128,
-    width: 128,
-    justifyContent: 'center',
+    marginHorizontal: 20,
+    marginVertical: 8,
+    padding: 16,
+    borderRadius: 8,
+    backgroundColor: COLORS_PALETTE.cyan,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  habitContent: {
+    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'darkseagreen',
+    justifyContent: 'space-between',
+  },
+  habitInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  habitName: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
