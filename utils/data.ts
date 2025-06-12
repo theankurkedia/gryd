@@ -15,7 +15,22 @@ export function sanitiseHabitsToPersist(habits: Habit[]): PersistentHabit[] {
       frequency: habit.frequency,
       dailyReminderNotificationIdentifier:
         habit.dailyReminderNotificationIdentifier,
+      order: habit.order,
     };
     return persistentHabit;
+  });
+}
+
+export function sortHabitsByOrder(habits: Habit[]): Habit[] {
+  return [...habits].sort((a, b) => {
+    // If both habits have order, sort by order
+    if (a.order !== undefined && b.order !== undefined) {
+      return a.order - b.order;
+    }
+    // If only one habit has order, put it first
+    if (a.order !== undefined) return -1;
+    if (b.order !== undefined) return 1;
+    // If neither has order, maintain original order
+    return 0;
   });
 }

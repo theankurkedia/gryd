@@ -29,6 +29,10 @@ export default function SettingsScreen() {
     });
   }, []);
 
+  const handleReorderHabits = useCallback(() => {
+    router.push('/reorder-habits');
+  }, []);
+
   const handleUpdateSetting = useCallback(
     (setting: keyof Settings, value: Settings[keyof Settings]) => {
       setSettings(setting, value);
@@ -57,7 +61,7 @@ export default function SettingsScreen() {
       >
         <View style={styles.mainContent}>
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>General</Text>
+            <Text style={styles.sectionTitle}>App</Text>
 
             <View style={styles.settingItem}>
               <Text style={styles.settingLabel}>Week starts on Sunday</Text>
@@ -71,6 +75,17 @@ export default function SettingsScreen() {
                 }
               />
             </View>
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={handleReorderHabits}
+            >
+              <Text style={styles.settingLabel}>Reorder habits</Text>
+              <ChevronRight size={18} />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>General</Text>
+
             <TouchableOpacity
               style={styles.settingItem}
               onPress={handleSendFeedback}

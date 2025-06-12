@@ -14,6 +14,7 @@ export interface PersistentHabit {
   dailyReminderTime: string;
   dailyReminderNotificationIdentifier?: string;
   dataSource: DataSource;
+  order?: number;
   // Identifier for the data source (e.g., username for GitHub/GitLab, API key for other services)
   dataSourceIdentifier?: string;
   frequency?: number;
