@@ -15,6 +15,7 @@ import { CalendarSkeleton } from '../components/CalendarSkeleton';
 import { useHabitsStore } from '../store';
 import { Habit } from '../types';
 import { router } from 'expo-router';
+import { sortHabitsByOrder } from '@/utils/data';
 
 export default function App() {
   const {
@@ -60,7 +61,7 @@ export default function App() {
                   )}
                 </View>
               ) : (
-                habits?.map((habit: Habit) => (
+                sortHabitsByOrder(habits)?.map((habit: Habit) => (
                   <Calendar
                     key={habit?.id}
                     habit={habit}

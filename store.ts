@@ -29,6 +29,7 @@ interface HabitsStore {
   initialiseCompletions: () => Promise<void>;
   addHabit: (habit: Habit) => Promise<void>;
   editHabit: (habit: Habit) => Promise<void>;
+  editHabits: (habits: Habit[]) => void;
   deleteHabit: (habitId: string) => Promise<void>;
   getHabitCompletions: (habitId: string) => Record<string, number>;
   updateHabitCompletion: (date: string, habitId: string) => Promise<void>;
@@ -130,10 +131,15 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
       id: Math.random().toString(36).substring(2, 10),
       createdAt: new Date().toISOString(),
       frequency: habit.frequency ?? DEFAULT_FREQUENCY[habit.dataSource],
+      order:
+        habit.order ??
+        (habits.length > 0
+          ? Math.max(...habits.map(h => h.order ?? 0)) + 1
+          : 0),
     };
-    habits.push(newHabit);
-    set({ habits });
-    await saveHabitsData(sanitiseHabitsToPersist(habits));
+    const updatedHabits = [...habits, newHabit];
+    set({ habits: updatedHabits });
+    await saveHabitsData(sanitiseHabitsToPersist(updatedHabits));
     if (habit.dataSource && habit.dataSource !== DataSource.Manual) {
       await get().updateCompletionsFromExternalSource(newHabit);
     }
@@ -142,11 +148,22 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
   editHabit: async (habit: Habit) => {
     const habits = get().habits;
     const updatedHabits = habits.map(h => (h.id === habit.id ? habit : h));
+
     set({ habits: updatedHabits });
     await saveHabitsData(sanitiseHabitsToPersist(updatedHabits));
     if (habit.dataSource && habit.dataSource !== DataSource.Manual) {
       await get().updateCompletionsFromExternalSource(habit);
     }
+    get().syncHabits();
+  },
+  editHabits: async (habits: Habit[]) => {
+    const originalHabits = get().habits;
+    const updatedHabits = originalHabits.map(h => {
+      const updatedHabit = habits.find(h2 => h2.id === h.id);
+      return updatedHabit ?? h;
+    });
+    set({ habits: updatedHabits });
+    await saveHabitsData(sanitiseHabitsToPersist(updatedHabits));
     get().syncHabits();
   },
   deleteHabit: async (habitId: string) => {
