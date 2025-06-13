@@ -20,6 +20,7 @@ A habit tracking app
 - [ ] Release build for Android
 - [ ] Add export/import for the data
 - [ ] Add option to sign in and sync progress across devices
+- [ ] Add pro features
 - [ ] Add option to mark past date
 - [ ] Release iOS
 - [ ] Add screen widgets
