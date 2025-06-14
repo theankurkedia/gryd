@@ -12,19 +12,15 @@ import {
 interface FrequencySelectorProps {
   value: number;
   onChange: (value: number) => void;
-  max?: number;
-  editable?: boolean;
   color?: string;
 }
 
-const DEFAULT_MAX = 5;
+const MAX_PROGRESS_SQUARES = 6;
 
 export const FrequencySelector: React.FC<FrequencySelectorProps> = ({
   color = COLORS_PALETTE.cyan,
   value,
   onChange,
-  max = DEFAULT_MAX,
-  editable = true,
 }) => {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
@@ -44,18 +40,17 @@ export const FrequencySelector: React.FC<FrequencySelectorProps> = ({
   };
 
   const handlePress = (newValue: number) => {
-    if (editable) {
-      animatePress();
-      onChange(newValue);
-    }
+    animatePress();
+    onChange(newValue);
   };
 
+  const progressSquaresToShow = Math.min(value + 1, MAX_PROGRESS_SQUARES);
   return (
     <View style={styles.container}>
       <View style={styles.titleRow}>
         <Text style={styles.subtitle}>Daily frequency</Text>
         <View style={styles.progressRow}>
-          {[...Array(Math.min(value, max) + 1)].map((_, i) => (
+          {[...Array(progressSquaresToShow)].map((_, i) => (
             <View
               key={i}
               style={[
@@ -64,7 +59,7 @@ export const FrequencySelector: React.FC<FrequencySelectorProps> = ({
                   backgroundColor: getContributionColor(
                     color || COLORS_PALETTE.cyan,
                     i,
-                    value
+                    progressSquaresToShow
                   ),
                 },
               ]}
@@ -80,25 +75,16 @@ export const FrequencySelector: React.FC<FrequencySelectorProps> = ({
           <Text style={styles.unitText}>/ day</Text>
         </Animated.View>
         <TouchableOpacity
-          style={[
-            styles.button,
-            !editable && styles.disabledButton,
-            value <= 1 && styles.buttonDisabled,
-          ]}
+          style={[styles.button]}
           onPress={() => handlePress(Math.max(1, value - 1))}
-          disabled={!editable || value <= 1}
+          disabled={value <= 1}
           activeOpacity={0.7}
         >
           <Minus color="#fff" size={20} />
         </TouchableOpacity>
         <TouchableOpacity
-          style={[
-            styles.button,
-            !editable && styles.disabledButton,
-            value >= max && styles.buttonDisabled,
-          ]}
-          onPress={() => handlePress(Math.min(max, value + 1))}
-          disabled={!editable || value >= max}
+          style={[styles.button]}
+          onPress={() => handlePress(value + 1)}
           activeOpacity={0.7}
         >
           <Plus color="#fff" size={20} />
@@ -164,12 +150,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 2,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  disabledButton: {
-    opacity: 0.5,
   },
   progressRow: {
     display: 'flex',

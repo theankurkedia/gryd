@@ -393,8 +393,6 @@ export default function AddEditHabitScreen() {
             <FrequencySelector
               value={selectedHabit?.frequency || 1}
               onChange={handleFrequencyChange}
-              max={5}
-              editable={true}
               color={selectedHabit?.color || COLORS_PALETTE.cyan}
             />
           )}
