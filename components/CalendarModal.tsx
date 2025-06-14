@@ -77,6 +77,7 @@ export function CalendarModal({ visible, onClose, habit }: Props) {
               </View>
             ) : (
               <DeleteDialog
+                habitName={habit.name}
                 visible={showDeleteDialog}
                 onClose={() => setShowDeleteDialog(false)}
                 onConfirm={handleConfirmDelete}
@@ -128,10 +129,6 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     shadowColor: '#000',
-    // shadowOffset: {
-    //   width: 0,
-    //   height: 2,
-    // },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
