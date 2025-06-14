@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
   },
   headerButtonText: {
     color: '#fff',
-    fontWeight: 'bold',
+    fontWeight: '500',
     fontSize: 14,
   },
   subtitle: {
