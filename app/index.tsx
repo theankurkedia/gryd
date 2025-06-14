@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Platform,
   SafeAreaView,
@@ -14,8 +14,8 @@ import { Calendar } from '../components/Calendar';
 import { CalendarSkeleton } from '../components/CalendarSkeleton';
 import { useHabitsStore } from '../store';
 import { Habit } from '../types';
-import { router } from 'expo-router';
 import { sortHabitsByOrder } from '@/utils/data';
+import { CalendarModal } from '@/components/CalendarModal';
 
 export default function App() {
   const {
@@ -24,6 +24,7 @@ export default function App() {
     initialiseCompletions,
     isInitialisingHabits,
   } = useHabitsStore();
+  const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
 
   useEffect(() => {
     initialiseHabits();
@@ -31,10 +32,11 @@ export default function App() {
   }, [initialiseHabits, initialiseCompletions]);
 
   const handleHabitClick = (habit: Habit) => {
-    router.push({
-      pathname: '/add-edit-habit',
-      params: { habitId: habit.id },
-    });
+    setSelectedHabit(habit);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedHabit(null);
   };
 
   return (
@@ -72,6 +74,13 @@ export default function App() {
             </View>
           )}
         </ScrollView>
+        {selectedHabit && (
+          <CalendarModal
+            visible={!!selectedHabit}
+            onClose={handleCloseModal}
+            habit={selectedHabit}
+          />
+        )}
       </SafeAreaView>
     </GestureHandlerRootView>
   );
