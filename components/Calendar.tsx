@@ -195,8 +195,8 @@ export function Calendar({ habit, onClick }: Props) {
   );
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity style={styles.header} onPress={onClick}>
+    <TouchableOpacity style={styles.container} onPress={onClick}>
+      <View style={styles.header}>
         <View>
           <View style={styles.habitNameContainer}>
             {habit.icon && <Icon name={habit.icon} color="#fff" size={20} />}
@@ -223,7 +223,7 @@ export function Calendar({ habit, onClick }: Props) {
             <Check color="#fff" size={20} />
           </TouchableOpacity>
         )}
-      </TouchableOpacity>
+      </View>
 
       <View style={styles.calendarContainer}>
         <View style={styles.weekdayLabels}>
@@ -260,14 +260,14 @@ export function Calendar({ habit, onClick }: Props) {
           </View>
         </ScrollView>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#0D1117',
-    borderRadius: 8,
+    borderRadius: 12,
     padding: 16,
     maxWidth: 796,
   },

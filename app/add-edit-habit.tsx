@@ -2,19 +2,22 @@ import { formatTime, timeStringToTodayDate } from '@/utils/date';
 import DateTimePicker, {
   DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
-import { icons, Trash, X } from 'lucide-react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { icons, X } from 'lucide-react-native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Dimensions,
   Platform,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  SafeAreaView,
 } from 'react-native';
+import { FrequencySelector } from '../components/FrequencySelector';
+import { Picker } from '../components/Picker';
 import { COLORS_PALETTE } from '../constants/colors';
 import { useHabitsStore } from '../store';
 import { DataSource, Habit } from '../types';
@@ -23,10 +26,6 @@ import {
   registerForPushNotificationsAsync,
   setHabitReminder,
 } from '../utils/notifications';
-import { DeleteDialog } from '../components/DeleteDialog';
-import { FrequencySelector } from '../components/FrequencySelector';
-import { Picker } from '../components/Picker';
-import { router, useLocalSearchParams } from 'expo-router';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const PADDING_HORIZONTAL = 20;
@@ -102,12 +101,7 @@ export default function AddEditHabitScreen() {
   const params = useLocalSearchParams();
   const habitId = params.habitId as string;
 
-  const {
-    habits,
-    addHabit,
-    editHabit: editHabitStore,
-    deleteHabit,
-  } = useHabitsStore();
+  const { habits, addHabit, editHabit: editHabitStore } = useHabitsStore();
   const existingHabit = habitId
     ? habits.find(h => h.id === habitId)
     : undefined;
@@ -116,7 +110,6 @@ export default function AddEditHabitScreen() {
     existingHabit
   );
   const [iconSearch, setIconSearch] = useState('');
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
   useEffect(() => {
@@ -161,19 +154,6 @@ export default function AddEditHabitScreen() {
     }
     router.back();
   }, [selectedHabit, existingHabit, editHabitStore, addHabit]);
-
-  const handleDelete = useCallback(() => {
-    setShowDeleteDialog(true);
-  }, []);
-
-  const handleConfirmDelete = useCallback(async () => {
-    if (existingHabit?.id) {
-      await cancelScheduledNotification(existingHabit.id);
-      deleteHabit(existingHabit.id);
-      setShowDeleteDialog(false);
-      router.back();
-    }
-  }, [existingHabit?.id, deleteHabit]);
 
   // Memoize visible icons to prevent recalculation on every render
   const visibleIcons = useMemo(
@@ -291,14 +271,6 @@ export default function AddEditHabitScreen() {
           <Text style={styles.title}>
             {existingHabit?.id ? 'Edit Habit' : 'Add New Habit'}
           </Text>
-          {existingHabit?.id && (
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={handleDelete}
-            >
-              <Trash color="#fff" size={20} />
-            </TouchableOpacity>
-          )}
           <TouchableOpacity
             style={[
               styles.headerButton,
@@ -428,11 +400,6 @@ export default function AddEditHabitScreen() {
           )}
         </ScrollView>
       </SafeAreaView>
-      <DeleteDialog
-        visible={showDeleteDialog}
-        onClose={() => setShowDeleteDialog(false)}
-        onConfirm={handleConfirmDelete}
-      />
     </>
   );
 }

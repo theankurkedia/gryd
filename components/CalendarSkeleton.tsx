@@ -147,7 +147,7 @@ export const CalendarGridSkeleton = ({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#0D1117',
-    borderRadius: 8,
+    borderRadius: 12,
     padding: 16,
     marginBottom: 16,
   },
