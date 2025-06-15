@@ -8,6 +8,8 @@ import {
 import { Check } from 'lucide-react-native';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
+  Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -23,7 +25,7 @@ import Icon from './Icon';
 
 interface Props {
   habit: Habit;
-  onClick: () => void;
+  onClick?: () => void;
 }
 
 export function Calendar({ habit, onClick }: Props) {
@@ -213,8 +215,8 @@ export function Calendar({ habit, onClick }: Props) {
   );
 
   return (
-    <TouchableOpacity style={styles.container} onPress={onClick}>
-      <View style={styles.header}>
+    <View style={styles.container}>
+      <Pressable style={styles.header} onPress={onClick}>
         <View>
           <View style={styles.habitNameContainer}>
             {habit.icon && <Icon name={habit.icon} color="#fff" size={20} />}
@@ -241,7 +243,7 @@ export function Calendar({ habit, onClick }: Props) {
             <Check color="#fff" size={20} />
           </TouchableOpacity>
         )}
-      </View>
+      </Pressable>
 
       <View style={styles.calendarContainer}>
         {showDayLabels && (
@@ -264,6 +266,8 @@ export function Calendar({ habit, onClick }: Props) {
           showsHorizontalScrollIndicator={false}
           ref={scrollViewRef}
           contentContainerStyle={styles.scrollViewContent}
+          onPointerUp={Platform.OS === 'web' ? onClick : undefined}
+          onTouchEnd={Platform.OS === 'android' ? onClick : undefined}
         >
           <View style={[showMonthLabels && styles.contributionWrapper]}>
             {showMonthLabels && (
@@ -287,7 +291,7 @@ export function Calendar({ habit, onClick }: Props) {
           </View>
         </ScrollView>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 }
 

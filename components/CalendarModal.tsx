@@ -61,7 +61,7 @@ export function CalendarModal({ visible, onClose, habit }: Props) {
           <BlurView intensity={30} style={styles.blurContainer}>
             {!showDeleteDialog ? (
               <View style={styles.content}>
-                <Calendar habit={habit} onClick={onClose} />
+                <Calendar habit={habit} />
                 <View style={styles.editButtonContainer}>
                   <TouchableOpacity
                     style={styles.editButton}
