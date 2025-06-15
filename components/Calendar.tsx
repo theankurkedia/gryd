@@ -152,20 +152,36 @@ export function Calendar({ habit, onClick }: Props) {
       month: 'short',
     });
 
+    // Find the first day of each month in the calendar data
     calendarData.forEach((day, index) => {
       const date = new Date(day.date);
       const monthKey = date.toLocaleString('default', { month: 'short' });
-      const weekNumber = Math.floor(index / 7);
 
-      // Only store the first week number for each month
-      // Exclude current month if it's the first week because it will pick up the current month of last year
-      if (
-        !months.hasOwnProperty(monthKey) ||
-        (monthKey === currentMonthKey && months[monthKey] === 0)
-      ) {
+      // Only store the first day of each month
+      if (date.getDate() === 1 && !months.hasOwnProperty(monthKey)) {
+        const weekNumber = Math.floor(index / 7);
         months[monthKey] = weekNumber;
       }
     });
+
+    // If current month doesn't have a label (because it doesn't start on day 1),
+    // add it at the appropriate position
+    if (!months.hasOwnProperty(currentMonthKey)) {
+      const today = new Date();
+      const currentMonthStart = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        1
+      );
+      const currentMonthStartStr = formatDate(currentMonthStart);
+
+      const currentMonthIndex = calendarData.findIndex(
+        day => day.date === currentMonthStartStr
+      );
+      if (currentMonthIndex !== -1) {
+        months[currentMonthKey] = Math.floor(currentMonthIndex / 7);
+      }
+    }
 
     return Object.entries(months);
   }, [calendarData]);
