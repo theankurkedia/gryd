@@ -37,10 +37,16 @@ interface HabitsStore {
   updateCompletionsFromExternalSource: (h: Habit) => Promise<void>;
 }
 
+const DEFAULT_SETTINGS: Settings = {
+  showMonthLabels: true,
+  showDayLabels: true,
+  weekStartsOnSunday: false,
+};
+
 export const useHabitsStore = create<HabitsStore>((set, get) => ({
   habits: [],
   isInitialisingHabits: true,
-  settings: {},
+  settings: DEFAULT_SETTINGS,
   completions: {},
   getSetting: (setting: keyof Settings) => get().settings[setting],
   getAllSettings: () => get().settings,
@@ -59,7 +65,10 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
       })),
     });
     const settings = await getSettingsFromDb();
-    set({ settings, isInitialisingHabits: false });
+    set({
+      settings: { ...DEFAULT_SETTINGS, ...settings },
+      isInitialisingHabits: false,
+    });
   },
   syncHabits: async () => {
     const habits = await getHabitsData();

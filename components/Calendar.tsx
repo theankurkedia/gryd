@@ -32,6 +32,8 @@ export function Calendar({ habit, onClick }: Props) {
     useHabitsStore();
 
   const weekStartsOnSunday = getSetting('weekStartsOnSunday');
+  const showDayLabels = getSetting('showDayLabels');
+  const showMonthLabels = getSetting('showMonthLabels');
   const weekdays = useMemo(
     () =>
       weekStartsOnSunday ? WEEKDAYS_STARTING_SUNDAY : WEEKDAYS_STARTING_MONDAY,
@@ -152,20 +154,36 @@ export function Calendar({ habit, onClick }: Props) {
       month: 'short',
     });
 
+    // Find the first day of each month in the calendar data
     calendarData.forEach((day, index) => {
       const date = new Date(day.date);
       const monthKey = date.toLocaleString('default', { month: 'short' });
-      const weekNumber = Math.floor(index / 7);
 
-      // Only store the first week number for each month
-      // Exclude current month if it's the first week because it will pick up the current month of last year
-      if (
-        !months.hasOwnProperty(monthKey) ||
-        (monthKey === currentMonthKey && months[monthKey] === 0)
-      ) {
+      // Only store the first day of each month
+      if (date.getDate() === 1 && !months.hasOwnProperty(monthKey)) {
+        const weekNumber = Math.floor(index / 7);
         months[monthKey] = weekNumber;
       }
     });
+
+    // If current month doesn't have a label (because it doesn't start on day 1),
+    // add it at the appropriate position
+    if (!months.hasOwnProperty(currentMonthKey)) {
+      const today = new Date();
+      const currentMonthStart = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        1
+      );
+      const currentMonthStartStr = formatDate(currentMonthStart);
+
+      const currentMonthIndex = calendarData.findIndex(
+        day => day.date === currentMonthStartStr
+      );
+      if (currentMonthIndex !== -1) {
+        months[currentMonthKey] = Math.floor(currentMonthIndex / 7);
+      }
+    }
 
     return Object.entries(months);
   }, [calendarData]);
@@ -226,13 +244,20 @@ export function Calendar({ habit, onClick }: Props) {
       </View>
 
       <View style={styles.calendarContainer}>
-        <View style={styles.weekdayLabels}>
-          {weekdays.map(day => (
-            <Text key={day} style={styles.weekdayLabel}>
-              {day}
-            </Text>
-          ))}
-        </View>
+        {showDayLabels && (
+          <View
+            style={[
+              styles.weekdayLabels,
+              showMonthLabels && styles.weekdayLabelsTopSpacing,
+            ]}
+          >
+            {weekdays.map(day => (
+              <Text key={day} style={styles.weekdayLabel}>
+                {day}
+              </Text>
+            ))}
+          </View>
+        )}
 
         <ScrollView
           horizontal
@@ -240,8 +265,10 @@ export function Calendar({ habit, onClick }: Props) {
           ref={scrollViewRef}
           contentContainerStyle={styles.scrollViewContent}
         >
-          <View style={styles.contributionWrapper}>
-            <View style={styles.monthLabelsContainer}>{monthLabels}</View>
+          <View style={[showMonthLabels && styles.contributionWrapper]}>
+            {showMonthLabels && (
+              <View style={styles.monthLabelsContainer}>{monthLabels}</View>
+            )}
             {habit.loading ? (
               <CalendarGridSkeleton color={habit?.color} />
             ) : (
@@ -310,7 +337,9 @@ const styles = StyleSheet.create({
   weekdayLabels: {
     marginRight: 4,
     gap: 2,
-    marginTop: 19,
+  },
+  weekdayLabelsTopSpacing: {
+    marginTop: 20,
   },
   weekdayLabel: {
     color: '#8B949E',
