@@ -32,6 +32,8 @@ export function Calendar({ habit, onClick }: Props) {
     useHabitsStore();
 
   const weekStartsOnSunday = getSetting('weekStartsOnSunday');
+  const showDayLabels = getSetting('showDayLabels');
+  const showMonthLabels = getSetting('showMonthLabels');
   const weekdays = useMemo(
     () =>
       weekStartsOnSunday ? WEEKDAYS_STARTING_SUNDAY : WEEKDAYS_STARTING_MONDAY,
@@ -242,13 +244,20 @@ export function Calendar({ habit, onClick }: Props) {
       </View>
 
       <View style={styles.calendarContainer}>
-        <View style={styles.weekdayLabels}>
-          {weekdays.map(day => (
-            <Text key={day} style={styles.weekdayLabel}>
-              {day}
-            </Text>
-          ))}
-        </View>
+        {showDayLabels && (
+          <View
+            style={[
+              styles.weekdayLabels,
+              showMonthLabels && styles.weekdayLabelsTopSpacing,
+            ]}
+          >
+            {weekdays.map(day => (
+              <Text key={day} style={styles.weekdayLabel}>
+                {day}
+              </Text>
+            ))}
+          </View>
+        )}
 
         <ScrollView
           horizontal
@@ -256,8 +265,10 @@ export function Calendar({ habit, onClick }: Props) {
           ref={scrollViewRef}
           contentContainerStyle={styles.scrollViewContent}
         >
-          <View style={styles.contributionWrapper}>
-            <View style={styles.monthLabelsContainer}>{monthLabels}</View>
+          <View style={[showMonthLabels && styles.contributionWrapper]}>
+            {showMonthLabels && (
+              <View style={styles.monthLabelsContainer}>{monthLabels}</View>
+            )}
             {habit.loading ? (
               <CalendarGridSkeleton color={habit?.color} />
             ) : (
@@ -326,7 +337,9 @@ const styles = StyleSheet.create({
   weekdayLabels: {
     marginRight: 4,
     gap: 2,
-    marginTop: 19,
+  },
+  weekdayLabelsTopSpacing: {
+    marginTop: 20,
   },
   weekdayLabel: {
     color: '#8B949E',

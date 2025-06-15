@@ -34,4 +34,6 @@ export interface Storage {
 
 export interface Settings {
   weekStartsOnSunday?: boolean;
+  showMonthLabels?: boolean;
+  showDayLabels?: boolean;
 }

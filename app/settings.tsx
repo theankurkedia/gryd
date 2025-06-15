@@ -64,6 +64,27 @@ export default function SettingsScreen() {
             <Text style={styles.sectionTitle}>App</Text>
 
             <View style={styles.settingItem}>
+              <Text style={styles.settingLabel}>Show month labels</Text>
+              <Switch
+                value={settings.showMonthLabels}
+                onValueChange={() =>
+                  handleUpdateSetting(
+                    'showMonthLabels',
+                    !settings.showMonthLabels
+                  )
+                }
+              />
+            </View>
+            <View style={styles.settingItem}>
+              <Text style={styles.settingLabel}>Show day labels</Text>
+              <Switch
+                value={settings.showDayLabels}
+                onValueChange={() =>
+                  handleUpdateSetting('showDayLabels', !settings.showDayLabels)
+                }
+              />
+            </View>
+            <View style={styles.settingItem}>
               <Text style={styles.settingLabel}>Week starts on Sunday</Text>
               <Switch
                 value={settings.weekStartsOnSunday}
