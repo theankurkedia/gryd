@@ -5,6 +5,7 @@ import {
   StyleSheet,
   View,
   TouchableOpacity,
+  GestureResponderEvent,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Calendar } from './Calendar';
@@ -40,7 +41,8 @@ export function CalendarModal({ visible, onClose, habit }: Props) {
     }
   }, [habit?.id, deleteHabit]);
 
-  const handleEdit = () => {
+  const handleEdit = (e: GestureResponderEvent) => {
+    e.stopPropagation();
     router.push({
       pathname: '/add-edit-habit',
       params: { habitId: habit.id },
@@ -117,20 +119,13 @@ const styles = StyleSheet.create({
     gap: 8,
     flexDirection: 'row',
     position: 'absolute',
-    bottom: -45,
+    bottom: -40,
     right: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   editButton: {
+    display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    padding: 10,
   },
 });
