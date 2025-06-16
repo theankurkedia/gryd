@@ -6,6 +6,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -16,6 +17,7 @@ import { useHabitsStore } from '../store';
 import { Habit } from '../types';
 import { sortHabitsByOrder } from '@/utils/data';
 import { CalendarModal } from '@/components/CalendarModal';
+import { router } from 'expo-router';
 
 export default function App() {
   const {
@@ -38,6 +40,9 @@ export default function App() {
   const handleCloseModal = () => {
     setSelectedHabit(null);
   };
+  const handleAddHabit = () => {
+    router.push('/add-edit-habit');
+  };
 
   return (
     <GestureHandlerRootView>
@@ -54,8 +59,16 @@ export default function App() {
               {habits?.length === 0 ? (
                 <View style={styles.emptyStateContainer}>
                   <Text style={styles.emptyStateText}>
-                    Create your first habit by clicking the + button.
+                    Track and build your habits with the + button.
                   </Text>
+                  <TouchableOpacity
+                    style={[styles.headerButton]}
+                    onPress={handleAddHabit}
+                  >
+                    <Text style={styles.headerButtonText}>
+                      Create your first habit
+                    </Text>
+                  </TouchableOpacity>
                   {Platform.OS === 'web' && (
                     <Text style={styles.emptyStateText}>
                       Use mobile view for best experience.
@@ -112,11 +125,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 24,
-    gap: 8,
+    gap: 16,
   },
   emptyStateText: {
     color: '#fff',
     fontSize: 16,
     textAlign: 'center',
+  },
+  headerButton: {
+    backgroundColor: '#3B82F6',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    marginLeft: 8,
+  },
+  headerButtonText: {
+    color: '#fff',
+    fontWeight: '500',
+    fontSize: 14,
   },
 });
