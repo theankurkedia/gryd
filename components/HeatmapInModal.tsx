@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
 import {
   Modal,
   Pressable,
@@ -7,13 +7,22 @@ import {
   Text,
   TouchableOpacity,
   GestureResponderEvent,
+  Dimensions,
+  Animated,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { Calendar } from './Calendar';
+import { Heatmap } from './Heatmap';
 import { Habit } from '@/types';
 import { router, usePathname } from 'expo-router';
-import { Circle, CircleCheckBig, Pencil, Trash } from 'lucide-react-native';
+import {
+  CalendarDays,
+  Circle,
+  CircleCheckBig,
+  Pencil,
+  Trash,
+} from 'lucide-react-native';
 import { DeleteDialog } from './DeleteDialog';
+import { BottomSheet } from './BottomSheet';
 import { useHabitsStore } from '@/store';
 import { cancelScheduledNotification } from '@/utils/notifications';
 import { formatDate } from '@/utils/date';
@@ -25,12 +34,19 @@ interface Props {
   habit: Habit;
 }
 
-export function CalendarModal({ visible, onClose, habit }: Props) {
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const CONTENT_HEIGHT_ADJUSTMENT = SCREEN_HEIGHT * 0.4;
+
+export function HeatmapInModal({ visible, onClose, habit }: Props) {
   const pathname = usePathname();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showCalendarSheet, setShowCalendarSheet] = useState(false);
   const { deleteHabit, updateHabitCompletion, getHabitCompletions } =
     useHabitsStore();
   const isEditScreenOpen = pathname === '/add-edit-habit';
+
+  // Animated value for marginBottom
+  const marginBottomAnim = useRef(new Animated.Value(0)).current;
 
   const habitCompletions = getHabitCompletions(habit.id);
   const todayFormatted = formatDate(new Date());
@@ -66,6 +82,19 @@ export function CalendarModal({ visible, onClose, habit }: Props) {
 
   const isTodayDone = todaysCompletions >= (habit?.frequency ?? 1);
 
+  // Animate marginBottom when calendar sheet opens/closes
+  useEffect(() => {
+    Animated.timing(marginBottomAnim, {
+      toValue: showCalendarSheet ? CONTENT_HEIGHT_ADJUSTMENT : 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [showCalendarSheet, marginBottomAnim]);
+
+  const openCalendar = useCallback(() => {
+    setShowCalendarSheet(true);
+  }, []);
+
   return (
     <>
       <Modal
@@ -77,8 +106,15 @@ export function CalendarModal({ visible, onClose, habit }: Props) {
         <Pressable style={styles.backdrop} onPress={onClose}>
           <BlurView intensity={30} style={styles.blurContainer}>
             {!showDeleteDialog ? (
-              <View style={styles.content}>
-                <Calendar habit={habit} />
+              <Animated.View
+                style={[
+                  styles.content,
+                  {
+                    marginBottom: marginBottomAnim,
+                  },
+                ]}
+              >
+                <Heatmap habit={habit} />
                 <View style={styles.editButtonContainer}>
                   <TouchableOpacity
                     style={[
@@ -112,6 +148,12 @@ export function CalendarModal({ visible, onClose, habit }: Props) {
                     )}
                   </TouchableOpacity>
                   <View style={styles.moreActionButtons}>
+                    {/* <TouchableOpacity
+                      style={styles.editButton}
+                      onPress={openCalendar}
+                    >
+                      <CalendarDays color="#fff" size={20} />
+                    </TouchableOpacity> */}
                     <TouchableOpacity
                       style={styles.editButton}
                       onPress={handleEdit}
@@ -126,7 +168,7 @@ export function CalendarModal({ visible, onClose, habit }: Props) {
                     </TouchableOpacity>
                   </View>
                 </View>
-              </View>
+              </Animated.View>
             ) : (
               <DeleteDialog
                 habitName={habit.name}
@@ -138,6 +180,13 @@ export function CalendarModal({ visible, onClose, habit }: Props) {
           </BlurView>
         </Pressable>
       </Modal>
+
+      <BottomSheet
+        visible={showCalendarSheet}
+        onClose={() => setShowCalendarSheet(false)}
+      >
+        <View style={styles.calendarSheetContent}>Calendar</View>
+      </BottomSheet>
     </>
   );
 }
@@ -155,6 +204,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   content: {
     width: '90%',
     maxWidth: 796,
@@ -190,5 +240,9 @@ const styles = StyleSheet.create({
   editButtonText: {
     color: '#fff',
     fontSize: 14,
+  },
+  calendarSheetContent: {
+    flex: 1,
+    padding: 20,
   },
 });
