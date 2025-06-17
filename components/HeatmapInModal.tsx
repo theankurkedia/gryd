@@ -148,12 +148,12 @@ export function HeatmapInModal({ visible, onClose, habit }: Props) {
                     )}
                   </TouchableOpacity>
                   <View style={styles.moreActionButtons}>
-                    <TouchableOpacity
+                    {/* <TouchableOpacity
                       style={styles.editButton}
                       onPress={openCalendar}
                     >
                       <CalendarDays color="#fff" size={20} />
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                     <TouchableOpacity
                       style={styles.editButton}
                       onPress={handleEdit}
