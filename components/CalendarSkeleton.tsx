@@ -16,12 +16,12 @@ export function CalendarSkeleton() {
         Animated.timing(animatedValue, {
           toValue: 1,
           duration: 1000,
-          useNativeDriver: false, // Changed to false to support backgroundColor animation
+          useNativeDriver: true,
         }),
         Animated.timing(animatedValue, {
           toValue: 0,
           duration: 1000,
-          useNativeDriver: false, // Changed to false to support backgroundColor animation
+          useNativeDriver: true,
         }),
       ])
     ).start();
@@ -95,12 +95,12 @@ export const CalendarGridSkeleton = ({
         Animated.timing(animatedValue, {
           toValue: 1,
           duration: 1000,
-          useNativeDriver: false,
+          useNativeDriver: true,
         }),
         Animated.timing(animatedValue, {
           toValue: 0,
           duration: 1000,
-          useNativeDriver: false,
+          useNativeDriver: true,
         }),
       ])
     ).start();
