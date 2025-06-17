@@ -16,6 +16,8 @@ import { Habit } from '@/types';
 import { router, usePathname } from 'expo-router';
 import {
   CalendarDays,
+  ChevronLeft,
+  ChevronRight,
   Circle,
   CircleCheckBig,
   Pencil,
@@ -27,6 +29,7 @@ import { useHabitsStore } from '@/store';
 import { cancelScheduledNotification } from '@/utils/notifications';
 import { formatDate } from '@/utils/date';
 import { COLORS_PALETTE, getContributionColor } from '@/constants/colors';
+import { Calendar } from 'react-native-calendars';
 
 interface Props {
   visible: boolean;
@@ -35,7 +38,7 @@ interface Props {
 }
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const CONTENT_HEIGHT_ADJUSTMENT = SCREEN_HEIGHT * 0.4;
+const CONTENT_HEIGHT_ADJUSTMENT = SCREEN_HEIGHT * 0.3;
 
 export function HeatmapInModal({ visible, onClose, habit }: Props) {
   const pathname = usePathname();
@@ -148,12 +151,12 @@ export function HeatmapInModal({ visible, onClose, habit }: Props) {
                     )}
                   </TouchableOpacity>
                   <View style={styles.moreActionButtons}>
-                    {/* <TouchableOpacity
+                    <TouchableOpacity
                       style={styles.editButton}
                       onPress={openCalendar}
                     >
                       <CalendarDays color="#fff" size={20} />
-                    </TouchableOpacity> */}
+                    </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.editButton}
                       onPress={handleEdit}
@@ -185,7 +188,36 @@ export function HeatmapInModal({ visible, onClose, habit }: Props) {
         visible={showCalendarSheet}
         onClose={() => setShowCalendarSheet(false)}
       >
-        <View style={styles.calendarSheetContent}>Calendar</View>
+        <View style={styles.calendarSheetContent}>
+          <Calendar
+            maxDate={todayFormatted}
+            onDayPress={day => {
+              console.log('** selected day', day);
+            }}
+            theme={{
+              calendarBackground: 'rgba(13, 17, 23, 0.8)',
+              textMonthFontWeight: 'bold',
+              dayTextColor: '#fff',
+              monthTextColor: '#fff',
+              textDisabledColor: '#424242',
+            }}
+            markingType="multi-dot"
+            monthFormat={'MMMM yyyy'}
+            renderArrow={direction =>
+              direction === 'left' ? (
+                <ChevronLeft color="#fff" />
+              ) : (
+                <ChevronRight color="#fff" />
+              )
+            }
+            // If firstDay=1 week starts from Monday. Note that dayNames and dayNamesShort should still start from Sunday
+            firstDay={1}
+            hideDayNames
+            // Disable all touch events for disabled days. can be override with disableTouchEvent in markedDates
+            disableAllTouchEventsForDisabledDays={true}
+            enableSwipeMonths
+          />
+        </View>
       </BottomSheet>
     </>
   );
@@ -243,6 +275,5 @@ const styles = StyleSheet.create({
   },
   calendarSheetContent: {
     flex: 1,
-    padding: 20,
   },
 });
