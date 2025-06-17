@@ -28,7 +28,7 @@ interface Props {
   onClick?: () => void;
 }
 
-export function Calendar({ habit, onClick }: Props) {
+export function Heatmap({ habit, onClick }: Props) {
   const scrollViewRef = useRef<ScrollView>(null);
   const { getSetting, getHabitCompletions, updateHabitCompletion } =
     useHabitsStore();

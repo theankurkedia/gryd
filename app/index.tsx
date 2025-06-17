@@ -11,12 +11,12 @@ import {
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppBar } from '../components/AppBar';
-import { Calendar } from '../components/Calendar';
+import { Heatmap } from '../components/Heatmap';
 import { CalendarSkeleton } from '../components/CalendarSkeleton';
 import { useHabitsStore } from '../store';
 import { Habit } from '../types';
 import { sortHabitsByOrder } from '@/utils/data';
-import { CalendarModal } from '@/components/CalendarModal';
+import { HeatmapInModal } from '@/components/HeatmapInModal';
 import { router } from 'expo-router';
 
 export default function App() {
@@ -77,7 +77,7 @@ export default function App() {
                 </View>
               ) : (
                 sortHabitsByOrder(habits)?.map((habit: Habit) => (
-                  <Calendar
+                  <Heatmap
                     key={habit?.id}
                     habit={habit}
                     onClick={() => handleHabitClick(habit)}
@@ -88,7 +88,7 @@ export default function App() {
           )}
         </ScrollView>
         {selectedHabit && (
-          <CalendarModal
+          <HeatmapInModal
             visible={!!selectedHabit}
             onClose={handleCloseModal}
             habit={selectedHabit}

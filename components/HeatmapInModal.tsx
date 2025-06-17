@@ -9,7 +9,7 @@ import {
   GestureResponderEvent,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { Calendar } from './Calendar';
+import { Heatmap } from './Heatmap';
 import { Habit } from '@/types';
 import { router, usePathname } from 'expo-router';
 import { Circle, CircleCheckBig, Pencil, Trash } from 'lucide-react-native';
@@ -25,7 +25,7 @@ interface Props {
   habit: Habit;
 }
 
-export function CalendarModal({ visible, onClose, habit }: Props) {
+export function HeatmapInModal({ visible, onClose, habit }: Props) {
   const pathname = usePathname();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { deleteHabit, updateHabitCompletion, getHabitCompletions } =
@@ -78,7 +78,7 @@ export function CalendarModal({ visible, onClose, habit }: Props) {
           <BlurView intensity={30} style={styles.blurContainer}>
             {!showDeleteDialog ? (
               <View style={styles.content}>
-                <Calendar habit={habit} />
+                <Heatmap habit={habit} />
                 <View style={styles.editButtonContainer}>
                   <TouchableOpacity
                     style={[
