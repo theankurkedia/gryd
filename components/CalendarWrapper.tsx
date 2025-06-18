@@ -3,7 +3,7 @@ import { Habit } from '@/types';
 import { formatDate } from '@/utils/date';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import React from 'react';
-import { Text, View, StyleSheet } from 'react-native';
+import { Text, View, StyleSheet, Pressable } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { MarkedDates } from 'react-native-calendars/src/types';
 
@@ -60,9 +60,9 @@ export function CalendarWrapper({ habit }: Props) {
     <View style={styles.calendarSheetContent}>
       <Calendar
         maxDate={todayFormatted}
-        onDayPress={day => {
-          console.log('** selected day', day);
-        }}
+        // onDayPress={date => {
+        //   console.log('** selected day', date);
+        // }}
         markedDates={markedDates}
         theme={CALENDAR_THEME}
         markingType="multi-dot"
@@ -80,11 +80,10 @@ export function CalendarWrapper({ habit }: Props) {
         // Disable all touch events for disabled days. can be override with disableTouchEvent in markedDates
         disableAllTouchEventsForDisabledDays
         enableSwipeMonths
-        dayComponent={({ date, state }) => (
+        dayComponent={props => (
           <DayComponent
-            date={date}
-            state={state}
-            count={habitCompletions[date.dateString] || 0}
+            {...props}
+            count={habitCompletions[props.date.dateString] || 0}
             color={habit.color}
           />
         )}
@@ -93,9 +92,12 @@ export function CalendarWrapper({ habit }: Props) {
   );
 }
 
-const DayComponent = ({ date, state, count, color }) => {
+const DayComponent = ({ date, state, count, color, ...props }) => {
   return (
-    <View style={styles.dayContainer}>
+    <Pressable
+      style={styles.dayContainer}
+      // onPress={() => props.onPress(xdateToData(date))}
+    >
       <Text
         style={{
           color: state === 'disabled' ? '#424242' : '#fff',
@@ -125,7 +127,7 @@ const DayComponent = ({ date, state, count, color }) => {
           <Text style={styles.customCountText}>{count}</Text>
         </View>
       )}
-    </View>
+    </Pressable>
   );
 };
 
