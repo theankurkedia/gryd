@@ -30,7 +30,7 @@ import { cancelScheduledNotification } from '@/utils/notifications';
 import { formatDate } from '@/utils/date';
 import { COLORS_PALETTE, getContributionColor } from '@/constants/colors';
 import { Calendar } from 'react-native-calendars';
-import { MarkedDates } from 'react-native-calendars/src/types';
+import { CalendarWrapper } from './CalendarWrapper';
 
 interface Props {
   visible: boolean;
@@ -98,20 +98,6 @@ export function HeatmapInModal({ visible, onClose, habit }: Props) {
   const openCalendar = useCallback(() => {
     setShowCalendarSheet(true);
   }, []);
-
-  const markedDates: MarkedDates = Object.keys(habitCompletions).reduce(
-    (acc, date) => {
-      const count = habitCompletions[date];
-      acc[date] = {
-        marked: true,
-        dots: Array.from({ length: Math.min(count, 5) }, () => ({
-          color: habit.color,
-        })),
-      };
-      return acc;
-    },
-    {}
-  );
 
   return (
     <>
@@ -203,112 +189,7 @@ export function HeatmapInModal({ visible, onClose, habit }: Props) {
         visible={showCalendarSheet}
         onClose={() => setShowCalendarSheet(false)}
       >
-        <View style={styles.calendarSheetContent}>
-          <Calendar
-            maxDate={todayFormatted}
-            onDayPress={day => {
-              console.log('** selected day', day);
-            }}
-            markedDates={markedDates}
-            theme={{
-              calendarBackground: 'rgba(13, 17, 23, 0.8)',
-              textMonthFontWeight: 'bold',
-              dayTextColor: '#fff',
-              monthTextColor: '#fff',
-              textDisabledColor: '#424242',
-              textDayFontSize: 12,
-              'stylesheet.calendar.main': {
-                week: {
-                  height: 24,
-                  marginVertical: 10,
-                  flexDirection: 'row',
-                  justifyContent: 'space-around',
-                },
-              },
-              'stylesheet.calendar.header': {
-                header: {
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  paddingHorizontal: 10,
-                  marginTop: 6,
-                  marginBottom: 12,
-                },
-              },
-            }}
-            markingType="multi-dot"
-            monthFormat={'MMMM yyyy'}
-            renderArrow={direction =>
-              direction === 'left' ? (
-                <ChevronLeft color="#fff" />
-              ) : (
-                <ChevronRight color="#fff" />
-              )
-            }
-            // If firstDay=1 week starts from Monday. Note that dayNames and dayNamesShort should still start from Sunday
-            firstDay={1}
-            hideDayNames
-            // Disable all touch events for disabled days. can be override with disableTouchEvent in markedDates
-            disableAllTouchEventsForDisabledDays
-            enableSwipeMonths
-            dayComponent={({ date, state }) => {
-              const count = habitCompletions[date.dateString] || 0;
-              const showCustomCount = count > 5;
-
-              if (!showCustomCount) {
-                return (
-                  <View style={{ alignItems: 'center' }}>
-                    <Text
-                      style={{
-                        color: state === 'disabled' ? '#424242' : '#fff',
-                      }}
-                    >
-                      {date.day}
-                    </Text>
-                    <View style={{ flexDirection: 'row', marginTop: 2 }}>
-                      {[...Array(count)].map((_, idx) => (
-                        <View
-                          key={idx}
-                          style={{
-                            width: 4,
-                            height: 4,
-                            borderRadius: 2,
-                            backgroundColor: habit.color,
-                            marginHorizontal: 1,
-                          }}
-                        />
-                      ))}
-                    </View>
-                  </View>
-                );
-              } else {
-                return (
-                  <View style={{ alignItems: 'center' }}>
-                    <Text
-                      style={{
-                        color: state === 'disabled' ? '#424242' : '#fff',
-                      }}
-                    >
-                      {date.day}
-                    </Text>
-                    <View style={styles.customCount}>
-                      <View
-                        style={{
-                          width: 4,
-                          height: 4,
-                          borderRadius: 2,
-                          backgroundColor: habit.color,
-                          marginHorizontal: 1,
-                        }}
-                      />
-                      <Text style={styles.customCountText}>{count}</Text>
-                    </View>
-                  </View>
-                );
-              }
-            }}
-          />
-        </View>
+        <CalendarWrapper habit={habit} />
       </BottomSheet>
     </>
   );
