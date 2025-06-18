@@ -9,7 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const BOTTOM_SHEET_HEIGHT = SCREEN_HEIGHT * 0.5;
+const BOTTOM_SHEET_HEIGHT = SCREEN_HEIGHT * 0.45;
 
 interface Props {
   visible: boolean;

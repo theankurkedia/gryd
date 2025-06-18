@@ -16,6 +16,8 @@ import { Habit } from '@/types';
 import { router, usePathname } from 'expo-router';
 import {
   CalendarDays,
+  ChevronLeft,
+  ChevronRight,
   Circle,
   CircleCheckBig,
   Pencil,
@@ -27,6 +29,8 @@ import { useHabitsStore } from '@/store';
 import { cancelScheduledNotification } from '@/utils/notifications';
 import { formatDate } from '@/utils/date';
 import { COLORS_PALETTE, getContributionColor } from '@/constants/colors';
+import { Calendar } from 'react-native-calendars';
+import { CalendarWrapper } from './CalendarWrapper';
 
 interface Props {
   visible: boolean;
@@ -35,7 +39,7 @@ interface Props {
 }
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const CONTENT_HEIGHT_ADJUSTMENT = SCREEN_HEIGHT * 0.4;
+const CONTENT_HEIGHT_ADJUSTMENT = SCREEN_HEIGHT * 0.3;
 
 export function HeatmapInModal({ visible, onClose, habit }: Props) {
   const pathname = usePathname();
@@ -148,12 +152,12 @@ export function HeatmapInModal({ visible, onClose, habit }: Props) {
                     )}
                   </TouchableOpacity>
                   <View style={styles.moreActionButtons}>
-                    {/* <TouchableOpacity
+                    <TouchableOpacity
                       style={styles.editButton}
                       onPress={openCalendar}
                     >
                       <CalendarDays color="#fff" size={20} />
-                    </TouchableOpacity> */}
+                    </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.editButton}
                       onPress={handleEdit}
@@ -185,7 +189,7 @@ export function HeatmapInModal({ visible, onClose, habit }: Props) {
         visible={showCalendarSheet}
         onClose={() => setShowCalendarSheet(false)}
       >
-        <View style={styles.calendarSheetContent}>Calendar</View>
+        <CalendarWrapper habit={habit} />
       </BottomSheet>
     </>
   );
@@ -204,7 +208,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   content: {
     width: '90%',
     maxWidth: 796,
@@ -243,6 +246,19 @@ const styles = StyleSheet.create({
   },
   calendarSheetContent: {
     flex: 1,
-    padding: 20,
+  },
+  customCount: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 1,
+    borderRadius: 8,
+    backgroundColor: '#fff',
+    padding: 1,
+    marginTop: 2,
+  },
+  customCountText: {
+    fontSize: 10,
   },
 });
