@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Heatmap } from './Heatmap';
-import { Habit } from '@/types';
+import { DataSource, Habit } from '@/types';
 import { router, usePathname } from 'expo-router';
 import {
   CalendarDays,
@@ -120,37 +120,40 @@ export function HeatmapInModal({ visible, onClose, habit }: Props) {
               >
                 <Heatmap habit={habit} />
                 <View style={styles.editButtonContainer}>
-                  <TouchableOpacity
-                    style={[
-                      styles.editButton,
-                      {
-                        backgroundColor: getContributionColor(
-                          habit?.color || COLORS_PALETTE.cyan,
-                          todaysCompletions,
-                          habit?.frequency || 1
-                        ),
-                      },
-                    ]}
-                    onPress={handleTodayButtonPress}
-                  >
-                    {isTodayDone ? (
-                      <>
-                        <Circle color="#fff" size={20} />
-                        <Text style={styles.editButtonText}>
-                          Mark as undone
-                        </Text>
-                      </>
-                    ) : (
-                      <>
-                        <CircleCheckBig color="#fff" size={20} />
-                        <Text style={styles.editButtonText}>
-                          {!habit?.frequency || habit?.frequency === 1
-                            ? 'Mark as done'
-                            : `Mark as done (${todaysCompletions} / ${habit?.frequency}) `}
-                        </Text>
-                      </>
-                    )}
-                  </TouchableOpacity>
+                  {(!habit.dataSource ||
+                    habit.dataSource === DataSource.Manual) && (
+                    <TouchableOpacity
+                      style={[
+                        styles.editButton,
+                        {
+                          backgroundColor: getContributionColor(
+                            habit?.color || COLORS_PALETTE.cyan,
+                            todaysCompletions,
+                            habit?.frequency || 1
+                          ),
+                        },
+                      ]}
+                      onPress={handleTodayButtonPress}
+                    >
+                      {isTodayDone ? (
+                        <>
+                          <Circle color="#fff" size={20} />
+                          <Text style={styles.editButtonText}>
+                            Mark as undone
+                          </Text>
+                        </>
+                      ) : (
+                        <>
+                          <CircleCheckBig color="#fff" size={20} />
+                          <Text style={styles.editButtonText}>
+                            {!habit?.frequency || habit?.frequency === 1
+                              ? 'Mark as done'
+                              : `Mark as done (${todaysCompletions} / ${habit?.frequency}) `}
+                          </Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  )}
                   <View style={styles.moreActionButtons}>
                     <TouchableOpacity
                       style={styles.editButton}
@@ -238,6 +241,7 @@ const styles = StyleSheet.create({
   moreActionButtons: {
     display: 'flex',
     flexDirection: 'row',
+    marginLeft: 'auto',
     gap: 8,
   },
   editButtonText: {

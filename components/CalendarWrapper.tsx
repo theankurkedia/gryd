@@ -38,7 +38,10 @@ const CALENDAR_THEME = {
 };
 
 export function CalendarWrapper({ habit }: Props) {
-  const { updateHabitCompletion, getHabitCompletions } = useHabitsStore();
+  const { updateHabitCompletion, getHabitCompletions, getSetting } =
+    useHabitsStore();
+  const weekStartsOnSunday = getSetting('weekStartsOnSunday');
+
   const todayFormatted = formatDate(new Date());
 
   const habitCompletions = getHabitCompletions(habit.id);
@@ -75,7 +78,7 @@ export function CalendarWrapper({ habit }: Props) {
           )
         }
         // If firstDay=1 week starts from Monday. Note that dayNames and dayNamesShort should still start from Sunday
-        firstDay={1}
+        firstDay={weekStartsOnSunday ? 0 : 1}
         hideDayNames
         // Disable all touch events for disabled days. can be override with disableTouchEvent in markedDates
         disableAllTouchEventsForDisabledDays
