@@ -5,13 +5,16 @@ import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import React, { useCallback } from 'react';
 import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { MarkedDates } from 'react-native-calendars/src/types';
+import {
+  MarkedDates,
+  Theme as CalendarTheme,
+} from 'react-native-calendars/src/types';
 
 interface Props {
   habit: Habit;
 }
 
-const CALENDAR_THEME = {
+const CALENDAR_THEME: CalendarTheme | Record<string, object> = {
   calendarBackground: 'rgba(13, 17, 23, 0.8)',
   textMonthFontWeight: 'bold',
   dayTextColor: '#fff',
@@ -41,6 +44,7 @@ export function CalendarWrapper({ habit }: Props) {
   const { updateHabitCompletion, getHabitCompletions, getSetting } =
     useHabitsStore();
   const weekStartsOnSunday = getSetting('weekStartsOnSunday');
+  const showDayLabels = getSetting('showDayLabels');
   const todayFormatted = formatDate(new Date());
   const habitCompletions = getHabitCompletions(habit.id);
 
@@ -81,7 +85,7 @@ export function CalendarWrapper({ habit }: Props) {
           )
         }
         firstDay={weekStartsOnSunday ? 0 : 1}
-        hideDayNames
+        hideDayNames={!showDayLabels}
         disableAllTouchEventsForDisabledDays
         enableSwipeMonths
         dayComponent={props => (
