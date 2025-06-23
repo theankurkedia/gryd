@@ -1,9 +1,11 @@
 import { useHabitsStore } from '@/store';
 import { Settings } from '@/types';
+import { exportAllData, importAllData } from '@/services/db';
+import { getAppVersion } from '@/utils/version';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
-import { ChevronRight, X } from 'lucide-react-native';
-import React, { useCallback } from 'react';
+import { ChevronRight, X, Download, Upload } from 'lucide-react-native';
+import React, { useCallback, useState } from 'react';
 import {
   Linking,
   Platform,
@@ -14,10 +16,14 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from 'react-native';
 
 export default function SettingsScreen() {
   const { settings, setSettings } = useHabitsStore();
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+
   const handleSendFeedback = useCallback(() => {
     const email = Constants.expoConfig?.extra?.FEEDBACK_EMAIL;
     const subject = 'Gryd App Feedback';
@@ -39,6 +45,50 @@ export default function SettingsScreen() {
     },
     []
   );
+
+  const handleExportData = useCallback(async () => {
+    try {
+      setIsExporting(true);
+      await exportAllData();
+      Alert.alert('Success', 'Data exported successfully!');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to export data. Please try again.');
+      console.error('Export error:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  }, []);
+
+  const handleImportData = useCallback(async () => {
+    Alert.alert(
+      'Import Data',
+      'This will replace all your current data. Are you sure you want to continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Import',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setIsImporting(true);
+              await importAllData();
+              Alert.alert('Success', 'Data imported successfully!');
+              // Refresh the app data
+              router.replace('/');
+            } catch (error) {
+              Alert.alert(
+                'Error',
+                'Failed to import data. Please check the file format.'
+              );
+              console.error('Import error:', error);
+            } finally {
+              setIsImporting(false);
+            }
+          },
+        },
+      ]
+    );
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -62,7 +112,6 @@ export default function SettingsScreen() {
         <View style={styles.mainContent}>
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>App</Text>
-
             <View style={styles.settingItem}>
               <Text style={styles.settingLabel}>Show month labels</Text>
               <Switch
@@ -104,6 +153,38 @@ export default function SettingsScreen() {
               <ChevronRight size={18} />
             </TouchableOpacity>
           </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Data</Text>
+            <TouchableOpacity
+              style={[styles.settingItem, isExporting && styles.disabledItem]}
+              onPress={handleExportData}
+              disabled={isExporting}
+            >
+              <View style={styles.settingLeft}>
+                <Download size={18} color="#fff" style={styles.settingIcon} />
+                <Text style={styles.settingLabel}>
+                  {isExporting ? 'Exporting...' : 'Export Data'}
+                </Text>
+              </View>
+              <ChevronRight size={18} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.settingItem, isImporting && styles.disabledItem]}
+              onPress={handleImportData}
+              disabled={isImporting}
+            >
+              <View style={styles.settingLeft}>
+                <Upload size={18} color="#fff" style={styles.settingIcon} />
+                <Text style={styles.settingLabel}>
+                  {isImporting ? 'Importing...' : 'Import Data'}
+                </Text>
+              </View>
+              <ChevronRight size={18} />
+            </TouchableOpacity>
+          </View>
+
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>General</Text>
 
@@ -118,7 +199,7 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Gryd 1.0.0</Text>
+          <Text style={styles.footerText}>Gryd {getAppVersion()}</Text>
           <Text style={styles.footerText}>Made with ❤️ by Ankur</Text>
         </View>
       </ScrollView>
@@ -156,16 +237,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   settingItem: {
+    height: 40,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingVertical: 8,
+  },
+  settingLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  settingIcon: {
+    marginRight: 12,
   },
   settingLabel: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 14,
     marginBottom: 4,
+  },
+  disabledItem: {
+    opacity: 0.5,
   },
   footer: {
     display: 'flex',
