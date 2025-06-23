@@ -1,6 +1,6 @@
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { Toast, ToastType } from '@/components/Toast';
-import { exportAllData, importAllData } from '@/services/db';
+import { exportAppData, importAppData } from '@/services/import-export';
 import { useHabitsStore } from '@/store';
 import { Settings } from '@/types';
 import { getAppVersion } from '@/utils/version';
@@ -60,7 +60,7 @@ export default function SettingsScreen() {
   const handleExportData = useCallback(async () => {
     try {
       setIsExporting(true);
-      await exportAllData();
+      await exportAppData();
       setToast({
         visible: true,
         message: 'Data exported successfully!',
@@ -86,7 +86,7 @@ export default function SettingsScreen() {
     try {
       setIsImporting(true);
       setShowImportConfirm(false);
-      await importAllData();
+      await importAppData();
       setToast({
         visible: true,
         message: 'Data imported successfully!',

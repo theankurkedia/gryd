@@ -7,6 +7,14 @@ import {
   validateAppData,
 } from '../utils/data-validation';
 import { getAppVersion } from '../utils/version';
+import { Platform } from 'react-native';
+import { saveHabitsData, saveSettingsToDb } from './db';
+import {
+  getHabitCompletionsFromDb,
+  getHabitsData,
+  getSettingsFromDb,
+  saveCompletionsData,
+} from './db';
 
 export interface AppData {
   version: string;
@@ -17,7 +25,7 @@ export interface AppData {
 }
 
 // Export all app data to JSON file
-export const exportAppData = async (
+const createFileWithData = async (
   habits: Habit[],
   completions: Completion,
   settings: Settings
@@ -32,19 +40,29 @@ export const exportAppData = async (
     };
 
     const fileName = `gryd-backup-${new Date().toISOString().split('T')[0]}.json`;
-    const filePath = `${FileSystem.documentDirectory}${fileName}`;
+    const jsonData = JSON.stringify(appData, null, 2);
 
-    await FileSystem.writeAsStringAsync(
-      filePath,
-      JSON.stringify(appData, null, 2)
-    );
+    if (Platform.OS === 'web') {
+      // Web: Use browser download
+      const blob = new Blob([jsonData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } else {
+      const filePath = `${FileSystem.documentDirectory}${fileName}`;
+      await FileSystem.writeAsStringAsync(filePath, jsonData);
 
-    if (await Sharing.isAvailableAsync()) {
-      console.log('*** filePath', filePath);
-      await Sharing.shareAsync(filePath, {
-        mimeType: 'application/json',
-        dialogTitle: 'Export Gryd Data',
-      });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(filePath, {
+          mimeType: 'application/json',
+          dialogTitle: 'Export Gryd Data',
+        });
+      }
     }
   } catch (error) {
     console.error('Export failed:', error);
@@ -53,19 +71,46 @@ export const exportAppData = async (
 };
 
 // Import app data from JSON file
-export const importAppData = async (): Promise<AppData> => {
+const readFileData = async (): Promise<AppData> => {
   try {
-    const result = await DocumentPicker.getDocumentAsync({
-      type: 'application/json',
-      copyToCacheDirectory: true,
-    });
+    let fileContent: string;
 
-    if (result.canceled || !result.assets[0]) {
-      throw new Error('No file selected');
+    if (Platform.OS === 'web') {
+      // Web: Use file input
+      fileContent = await new Promise((resolve, reject) => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = event => {
+          const file = (event.target as HTMLInputElement).files?.[0];
+          if (!file) {
+            reject(new Error('No file selected'));
+            return;
+          }
+
+          const reader = new FileReader();
+          reader.onload = e => {
+            resolve(e.target?.result as string);
+          };
+          reader.onerror = () => reject(new Error('Failed to read file'));
+          reader.readAsText(file);
+        };
+        input.click();
+      });
+    } else {
+      // Mobile: Use expo-document-picker
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/json',
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled || !result.assets[0]) {
+        throw new Error('No file selected');
+      }
+
+      const fileUri = result.assets[0].uri;
+      fileContent = await FileSystem.readAsStringAsync(fileUri);
     }
-
-    const fileUri = result.assets[0].uri;
-    const fileContent = await FileSystem.readAsStringAsync(fileUri);
 
     let appData: AppData;
     try {
@@ -86,4 +131,21 @@ export const importAppData = async (): Promise<AppData> => {
     console.error('Import failed:', error);
     throw error;
   }
+};
+
+// Export all data from the database
+export const exportAppData = async (): Promise<void> => {
+  const habits = await getHabitsData();
+  const completions = await getHabitCompletionsFromDb();
+  const settings = await getSettingsFromDb();
+  await createFileWithData(habits, completions, settings);
+};
+
+// Import all data to the database
+export const importAppData = async (): Promise<void> => {
+  const appData = await readFileData();
+  // TODO: Migrate data if needed
+  await saveHabitsData(appData.habits);
+  await saveCompletionsData(appData.completions);
+  await saveSettingsToDb(appData.settings);
 };

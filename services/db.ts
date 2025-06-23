@@ -1,7 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Completion, Habit, Settings } from '../types';
-import { getAppVersion } from '../utils/version';
-import { AppData, exportAppData, importAppData } from './import-export';
 
 const STORAGE_HABITS_KEY = 'gryd-habits';
 const STORAGE_COMPLETE_KEY = 'gryd-completions';
@@ -59,34 +57,4 @@ export const getSettingsFromDb = async (): Promise<Settings> => {
 
 export const saveSettingsToDb = async (settings: Settings) => {
   await AsyncStorage.setItem(STORAGE_SETTINGS_KEY, JSON.stringify(settings));
-};
-
-// Get all data for backup purposes
-const getAllData = async (): Promise<AppData> => {
-  const habits = await getHabitsData();
-  const completions = await getHabitCompletionsFromDb();
-  const settings = await getSettingsFromDb();
-
-  return {
-    version: getAppVersion(),
-    habits,
-    completions,
-    settings,
-    exportedAt: new Date().toISOString(),
-  };
-};
-
-// Export all data from the database
-export const exportAllData = async (): Promise<void> => {
-  const appData = await getAllData();
-  await exportAppData(appData.habits, appData.completions, appData.settings);
-};
-
-// Import all data to the database
-export const importAllData = async (): Promise<void> => {
-  const appData = await importAppData();
-  // TODO: Migrate data if needed
-  await saveHabitsData(appData.habits);
-  await saveCompletionsData(appData.completions);
-  await saveSettingsToDb(appData.settings);
 };
