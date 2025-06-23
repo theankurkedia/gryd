@@ -1,10 +1,10 @@
+import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import * as DocumentPicker from 'expo-document-picker';
-import { Habit, Completion, Settings } from '../types';
+import { Completion, Habit, Settings } from '../types';
 import {
-  validateAppData,
   getValidationErrorMessage,
+  validateAppData,
 } from '../utils/data-validation';
 import { getAppVersion } from '../utils/version';
 
@@ -40,6 +40,7 @@ export const exportAppData = async (
     );
 
     if (await Sharing.isAvailableAsync()) {
+      console.log('*** filePath', filePath);
       await Sharing.shareAsync(filePath, {
         mimeType: 'application/json',
         dialogTitle: 'Export Gryd Data',

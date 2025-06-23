@@ -1,5 +1,3 @@
-import { Habit, Completion, Settings } from '../types';
-
 export interface ValidationResult {
   isValid: boolean;
   errors: string[];

@@ -1,10 +1,12 @@
+import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { Toast, ToastType } from '@/components/Toast';
+import { exportAllData, importAllData } from '@/services/db';
 import { useHabitsStore } from '@/store';
 import { Settings } from '@/types';
-import { exportAllData, importAllData } from '@/services/db';
 import { getAppVersion } from '@/utils/version';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
-import { ChevronRight, X, Download, Upload } from 'lucide-react-native';
+import { ChevronRight, Download, Upload, X } from 'lucide-react-native';
 import React, { useCallback, useState } from 'react';
 import {
   Linking,
@@ -16,13 +18,22 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Alert,
 } from 'react-native';
 
 export default function SettingsScreen() {
   const { settings, setSettings } = useHabitsStore();
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    message: string;
+    type: ToastType;
+  }>({
+    visible: false,
+    message: '',
+    type: 'success',
+  });
+  const [showImportConfirm, setShowImportConfirm] = useState(false);
 
   const handleSendFeedback = useCallback(() => {
     const email = Constants.expoConfig?.extra?.FEEDBACK_EMAIL;
@@ -50,44 +61,53 @@ export default function SettingsScreen() {
     try {
       setIsExporting(true);
       await exportAllData();
-      Alert.alert('Success', 'Data exported successfully!');
+      setToast({
+        visible: true,
+        message: 'Data exported successfully!',
+        type: 'success',
+      });
     } catch (error) {
-      Alert.alert('Error', 'Failed to export data. Please try again.');
+      setToast({
+        visible: true,
+        message: 'Failed to export data. Please try again.',
+        type: 'error',
+      });
       console.error('Export error:', error);
     } finally {
       setIsExporting(false);
     }
   }, []);
 
-  const handleImportData = useCallback(async () => {
-    Alert.alert(
-      'Import Data',
-      'This will replace all your current data. Are you sure you want to continue?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Import',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setIsImporting(true);
-              await importAllData();
-              Alert.alert('Success', 'Data imported successfully!');
-              // Refresh the app data
-              router.replace('/');
-            } catch (error) {
-              Alert.alert(
-                'Error',
-                'Failed to import data. Please check the file format.'
-              );
-              console.error('Import error:', error);
-            } finally {
-              setIsImporting(false);
-            }
-          },
-        },
-      ]
-    );
+  const handleImportData = useCallback(() => {
+    setShowImportConfirm(true);
+  }, []);
+
+  const handleConfirmImport = useCallback(async () => {
+    try {
+      setIsImporting(true);
+      setShowImportConfirm(false);
+      await importAllData();
+      setToast({
+        visible: true,
+        message: 'Data imported successfully!',
+        type: 'success',
+      });
+      // Refresh the app data
+      router.replace('/');
+    } catch (error) {
+      setToast({
+        visible: true,
+        message: 'Failed to import data. Please check the file format.',
+        type: 'error',
+      });
+      console.error('Import error:', error);
+    } finally {
+      setIsImporting(false);
+    }
+  }, []);
+
+  const hideToast = useCallback(() => {
+    setToast(prev => ({ ...prev, visible: false }));
   }, []);
 
   return (
@@ -203,6 +223,24 @@ export default function SettingsScreen() {
           <Text style={styles.footerText}>Made with ❤️ by Ankur</Text>
         </View>
       </ScrollView>
+
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={hideToast}
+      />
+
+      <ConfirmDialog
+        title="Import Data"
+        message="This will replace all your current data. Are you sure you want to continue?"
+        visible={showImportConfirm}
+        onClose={() => setShowImportConfirm(false)}
+        onConfirm={handleConfirmImport}
+        confirmText="Import"
+        cancelText="Cancel"
+        type="danger"
+      />
     </SafeAreaView>
   );
 }
