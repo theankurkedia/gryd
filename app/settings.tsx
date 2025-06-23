@@ -6,7 +6,12 @@ import { Settings } from '@/types';
 import { getAppVersion } from '@/utils/version';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
-import { ChevronRight, Download, Upload, X } from 'lucide-react-native';
+import {
+  ChevronRight,
+  FolderInput,
+  FolderOutput,
+  X,
+} from 'lucide-react-native';
 import React, { useCallback, useState } from 'react';
 import {
   Linking,
@@ -182,7 +187,11 @@ export default function SettingsScreen() {
               disabled={isExporting}
             >
               <View style={styles.settingLeft}>
-                <Download size={18} color="#fff" style={styles.settingIcon} />
+                <FolderOutput
+                  size={18}
+                  color="#fff"
+                  style={styles.settingIcon}
+                />
                 <Text style={styles.settingLabel}>
                   {isExporting ? 'Exporting...' : 'Export Data'}
                 </Text>
@@ -196,7 +205,11 @@ export default function SettingsScreen() {
               disabled={isImporting}
             >
               <View style={styles.settingLeft}>
-                <Upload size={18} color="#fff" style={styles.settingIcon} />
+                <FolderInput
+                  size={18}
+                  color="#fff"
+                  style={styles.settingIcon}
+                />
                 <Text style={styles.settingLabel}>
                   {isImporting ? 'Importing...' : 'Import Data'}
                 </Text>

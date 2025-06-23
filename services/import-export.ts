@@ -1,7 +1,7 @@
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import { Completion, Habit, Settings } from '../types';
+import { Completion, DataSource, Habit, Settings } from '../types';
 import {
   getValidationErrorMessage,
   validateAppData,
@@ -133,12 +133,27 @@ const readFileData = async (): Promise<AppData> => {
   }
 };
 
+const filterAutomatedCompletions = (
+  habits: Habit[],
+  completions: Completion
+) => {
+  return Object.keys(completions).reduce((acc, habitId) => {
+    const habit = habits.find(habit => habit.id === habitId);
+    if (!habit) return acc;
+    if ([DataSource.GitHub, DataSource.GitLab].includes(habit.dataSource)) {
+      return acc;
+    }
+    return { ...acc, [habitId]: completions[habitId] };
+  }, {});
+};
+
 // Export all data from the database
 export const exportAppData = async (): Promise<void> => {
   const habits = await getHabitsData();
   const completions = await getHabitCompletionsFromDb();
+  const filteredCompletions = filterAutomatedCompletions(habits, completions);
   const settings = await getSettingsFromDb();
-  await createFileWithData(habits, completions, settings);
+  await createFileWithData(habits, filteredCompletions, settings);
 };
 
 // Import all data to the database
