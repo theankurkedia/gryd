@@ -1,9 +1,18 @@
+import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { Toast, ToastType } from '@/components/Toast';
+import { exportAppData, importAppData } from '@/services/import-export';
 import { useHabitsStore } from '@/store';
 import { Settings } from '@/types';
+import { getAppVersion } from '@/utils/version';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
-import { ChevronRight, X } from 'lucide-react-native';
-import React, { useCallback } from 'react';
+import {
+  ChevronRight,
+  FolderInput,
+  FolderOutput,
+  X,
+} from 'lucide-react-native';
+import React, { useCallback, useState } from 'react';
 import {
   Linking,
   Platform,
@@ -18,6 +27,19 @@ import {
 
 export default function SettingsScreen() {
   const { settings, setSettings } = useHabitsStore();
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    message: string;
+    type: ToastType;
+  }>({
+    visible: false,
+    message: '',
+    type: 'success',
+  });
+  const [showImportConfirm, setShowImportConfirm] = useState(false);
+
   const handleSendFeedback = useCallback(() => {
     const email = Constants.expoConfig?.extra?.FEEDBACK_EMAIL;
     const subject = 'Gryd App Feedback';
@@ -39,6 +61,59 @@ export default function SettingsScreen() {
     },
     []
   );
+
+  const handleExportData = useCallback(async () => {
+    try {
+      setIsExporting(true);
+      await exportAppData();
+      setToast({
+        visible: true,
+        message: 'Data exported successfully!',
+        type: 'success',
+      });
+    } catch (error) {
+      setToast({
+        visible: true,
+        message: 'Failed to export data. Please try again.',
+        type: 'error',
+      });
+      console.error('Export error:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  }, []);
+
+  const handleImportData = useCallback(() => {
+    setShowImportConfirm(true);
+  }, []);
+
+  const handleConfirmImport = useCallback(async () => {
+    try {
+      setIsImporting(true);
+      setShowImportConfirm(false);
+      await importAppData();
+      setToast({
+        visible: true,
+        message: 'Data imported successfully!',
+        type: 'success',
+      });
+      // Refresh the app data
+      router.replace('/');
+    } catch (error) {
+      setToast({
+        visible: true,
+        message: 'Failed to import data. Please check the file format.',
+        type: 'error',
+      });
+      console.error('Import error:', error);
+    } finally {
+      setIsImporting(false);
+    }
+  }, []);
+
+  const hideToast = useCallback(() => {
+    setToast(prev => ({ ...prev, visible: false }));
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -62,7 +137,6 @@ export default function SettingsScreen() {
         <View style={styles.mainContent}>
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>App</Text>
-
             <View style={styles.settingItem}>
               <Text style={styles.settingLabel}>Show month labels</Text>
               <Switch
@@ -104,6 +178,46 @@ export default function SettingsScreen() {
               <ChevronRight size={18} />
             </TouchableOpacity>
           </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Data</Text>
+            <TouchableOpacity
+              style={[styles.settingItem, isExporting && styles.disabledItem]}
+              onPress={handleExportData}
+              disabled={isExporting}
+            >
+              <View style={styles.settingLeft}>
+                <FolderOutput
+                  size={18}
+                  color="#fff"
+                  style={styles.settingIcon}
+                />
+                <Text style={styles.settingLabel}>
+                  {isExporting ? 'Exporting...' : 'Export Data'}
+                </Text>
+              </View>
+              <ChevronRight size={18} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.settingItem, isImporting && styles.disabledItem]}
+              onPress={handleImportData}
+              disabled={isImporting}
+            >
+              <View style={styles.settingLeft}>
+                <FolderInput
+                  size={18}
+                  color="#fff"
+                  style={styles.settingIcon}
+                />
+                <Text style={styles.settingLabel}>
+                  {isImporting ? 'Importing...' : 'Import Data'}
+                </Text>
+              </View>
+              <ChevronRight size={18} />
+            </TouchableOpacity>
+          </View>
+
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>General</Text>
 
@@ -118,10 +232,28 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Gryd 1.0.0</Text>
+          <Text style={styles.footerText}>Gryd {getAppVersion()}</Text>
           <Text style={styles.footerText}>Made with ❤️ by Ankur</Text>
         </View>
       </ScrollView>
+
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={hideToast}
+      />
+
+      <ConfirmDialog
+        title="Import Data"
+        message="This will replace all your current data. Are you sure you want to continue?"
+        visible={showImportConfirm}
+        onClose={() => setShowImportConfirm(false)}
+        onConfirm={handleConfirmImport}
+        confirmText="Import"
+        cancelText="Cancel"
+        type="danger"
+      />
     </SafeAreaView>
   );
 }
@@ -156,16 +288,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   settingItem: {
+    height: 40,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingVertical: 8,
+  },
+  settingLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  settingIcon: {
+    marginRight: 12,
   },
   settingLabel: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 14,
     marginBottom: 4,
+  },
+  disabledItem: {
+    opacity: 0.5,
   },
   footer: {
     display: 'flex',
