@@ -18,7 +18,7 @@ A habit tracking app
 - [x] Add frequency options
 - [x] Re-order the habits
 - [ ] Release build for Android
-- [ ] Add export/import for the data
+- [x] Add export/import for the data
 - [ ] Add option to sign in and sync progress across devices
 - [ ] Add pro features
 - [x] Add option to mark past date
