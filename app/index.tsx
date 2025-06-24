@@ -18,6 +18,7 @@ import { Habit } from '../types';
 import { sortHabitsByOrder } from '@/utils/data';
 import { HeatmapInModal } from '@/components/HeatmapInModal';
 import { router } from 'expo-router';
+import { WeeklyHeatmap } from '@/components/WeeklyHeatmap';
 
 export default function App() {
   const {
@@ -27,6 +28,9 @@ export default function App() {
     isInitialisingHabits,
   } = useHabitsStore();
   const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
+  const [selectedView, setSelectedView] = useState<'yearly' | 'weekly'>(
+    'yearly'
+  );
 
   useEffect(() => {
     initialiseHabits();
@@ -43,6 +47,8 @@ export default function App() {
   const handleAddHabit = () => {
     router.push('/add-edit-habit');
   };
+
+  const ComponentToRender = selectedView === 'yearly' ? Heatmap : WeeklyHeatmap;
 
   return (
     <GestureHandlerRootView>
@@ -77,7 +83,7 @@ export default function App() {
                 </View>
               ) : (
                 sortHabitsByOrder(habits)?.map((habit: Habit) => (
-                  <Heatmap
+                  <ComponentToRender
                     key={habit?.id}
                     habit={habit}
                     onClick={() => handleHabitClick(habit)}
@@ -87,6 +93,48 @@ export default function App() {
             </View>
           )}
         </ScrollView>
+
+        <View style={styles.buttonGroupContainer}>
+          <View style={styles.buttonGroup}>
+            <TouchableOpacity
+              style={[
+                styles.buttonGroupButton,
+                styles.leftButton,
+                selectedView === 'yearly' && styles.buttonGroupButtonActive,
+              ]}
+              onPress={() => setSelectedView('yearly')}
+            >
+              <Text
+                style={[
+                  styles.buttonGroupButtonText,
+                  selectedView === 'yearly' &&
+                    styles.buttonGroupButtonTextActive,
+                ]}
+              >
+                Yearly
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.buttonGroupButton,
+                styles.rightButton,
+                selectedView === 'weekly' && styles.buttonGroupButtonActive,
+              ]}
+              onPress={() => setSelectedView('weekly')}
+            >
+              <Text
+                style={[
+                  styles.buttonGroupButtonText,
+                  selectedView === 'weekly' &&
+                    styles.buttonGroupButtonTextActive,
+                ]}
+              >
+                Weekly
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {selectedHabit && (
           <HeatmapInModal
             visible={!!selectedHabit}
@@ -106,6 +154,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flexGrow: 1,
+    paddingBottom: 60, // Add padding to prevent content from being hidden behind the button group
   },
   content: {
     paddingHorizontal: 16,
@@ -143,5 +192,58 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '500',
     fontSize: 14,
+  },
+  buttonGroupContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#0d1b2a',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  buttonGroup: {
+    flexDirection: 'row',
+    backgroundColor: '#1e2832',
+    borderRadius: 12,
+    overflow: 'hidden',
+    width: 120,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  buttonGroupButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  leftButton: {
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
+  },
+  rightButton: {
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
+  },
+  buttonGroupButtonActive: {
+    backgroundColor: '#3B82F6',
+  },
+  buttonGroupButtonText: {
+    color: '#9CA3AF',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  buttonGroupButtonTextActive: {
+    color: '#fff',
+    fontWeight: '600',
   },
 });
