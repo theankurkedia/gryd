@@ -26,4 +26,5 @@ A habit tracking app
 - [ ] Add screen widgets
 - [ ] Show analytics
 - [ ] Add month/week view for the habit
+- [ ] Add integrations with Strava, fitness apps, IFFFT
 - [ ] Add light/dark/system mode
