@@ -1,36 +1,25 @@
-import React, { useCallback, useState, useRef, useEffect } from 'react';
+import { COLORS_PALETTE, getContributionColor } from '@/constants/colors';
+import { useHabitsStore } from '@/store';
+import { DataSource, Habit } from '@/types';
+import { formatDate } from '@/utils/date';
+import { cancelScheduledNotification } from '@/utils/notifications';
+import { BlurView } from 'expo-blur';
+import { router, usePathname } from 'expo-router';
+import { Circle, CircleCheckBig, Pencil, Trash } from 'lucide-react-native';
+import React, { useCallback, useState } from 'react';
 import {
+  GestureResponderEvent,
   Modal,
   Pressable,
   StyleSheet,
-  View,
   Text,
   TouchableOpacity,
-  GestureResponderEvent,
-  Dimensions,
-  Animated,
+  View,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
-import { Heatmap } from './Heatmap';
-import { DataSource, Habit } from '@/types';
-import { router, usePathname } from 'expo-router';
-import {
-  CalendarDays,
-  ChevronLeft,
-  ChevronRight,
-  Circle,
-  CircleCheckBig,
-  Pencil,
-  Trash,
-} from 'lucide-react-native';
-import { DeleteDialog } from './DeleteDialog';
 import { BottomSheet } from './BottomSheet';
-import { useHabitsStore } from '@/store';
-import { cancelScheduledNotification } from '@/utils/notifications';
-import { formatDate } from '@/utils/date';
-import { COLORS_PALETTE, getContributionColor } from '@/constants/colors';
-import { Calendar } from 'react-native-calendars';
 import { CalendarWrapper } from './CalendarWrapper';
+import { DeleteDialog } from './DeleteDialog';
+import { Heatmap } from './Heatmap';
 
 interface Props {
   visible: boolean;
@@ -38,19 +27,12 @@ interface Props {
   habit: Habit;
 }
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const CONTENT_HEIGHT_ADJUSTMENT = SCREEN_HEIGHT * 0.3;
-
 export function HeatmapInModal({ visible, onClose, habit }: Props) {
   const pathname = usePathname();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [showCalendarSheet, setShowCalendarSheet] = useState(false);
   const { deleteHabit, updateHabitCompletion, getHabitCompletions } =
     useHabitsStore();
   const isEditScreenOpen = pathname === '/add-edit-habit';
-
-  // Animated value for marginBottom
-  const marginBottomAnim = useRef(new Animated.Value(0)).current;
 
   const habitCompletions = getHabitCompletions(habit.id);
   const todayFormatted = formatDate(new Date());
@@ -67,7 +49,7 @@ export function HeatmapInModal({ visible, onClose, habit }: Props) {
       setShowDeleteDialog(false);
       onClose();
     }
-  }, [habit?.id, deleteHabit]);
+  }, [habit.id, deleteHabit, onClose]);
 
   const handleEdit = (e: GestureResponderEvent) => {
     e.stopPropagation();
@@ -77,27 +59,14 @@ export function HeatmapInModal({ visible, onClose, habit }: Props) {
     });
   };
   const handleTodayButtonPress = useCallback(
-    (e: any) => {
+    (e: GestureResponderEvent) => {
       e.stopPropagation();
       updateHabitCompletion(todayFormatted, habit.id);
     },
-    [updateHabitCompletion, habit.id]
+    [updateHabitCompletion, todayFormatted, habit.id]
   );
 
   const isTodayDone = todaysCompletions >= (habit?.frequency ?? 1);
-
-  // Animate marginBottom when calendar sheet opens/closes
-  useEffect(() => {
-    Animated.timing(marginBottomAnim, {
-      toValue: showCalendarSheet ? CONTENT_HEIGHT_ADJUSTMENT : 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  }, [showCalendarSheet, marginBottomAnim]);
-
-  const openCalendar = useCallback(() => {
-    setShowCalendarSheet(true);
-  }, []);
 
   return (
     <>
@@ -109,91 +78,73 @@ export function HeatmapInModal({ visible, onClose, habit }: Props) {
       >
         <Pressable style={styles.backdrop} onPress={onClose}>
           <BlurView intensity={30} style={styles.blurContainer}>
-            {!showDeleteDialog ? (
-              <Animated.View
-                style={[
-                  styles.content,
-                  {
-                    marginBottom: marginBottomAnim,
-                  },
-                ]}
-              >
-                <Heatmap habit={habit} />
-                <View style={styles.editButtonContainer}>
-                  {(!habit.dataSource ||
-                    habit.dataSource === DataSource.Manual) && (
-                    <TouchableOpacity
-                      style={[
-                        styles.editButton,
-                        {
-                          backgroundColor: getContributionColor(
-                            habit?.color || COLORS_PALETTE.cyan,
-                            todaysCompletions,
-                            habit?.frequency || 1
-                          ),
-                        },
-                      ]}
-                      onPress={handleTodayButtonPress}
-                    >
-                      {isTodayDone ? (
-                        <>
-                          <Circle color="#fff" size={20} />
-                          <Text style={styles.editButtonText}>
-                            Mark as undone
-                          </Text>
-                        </>
-                      ) : (
-                        <>
-                          <CircleCheckBig color="#fff" size={20} />
-                          <Text style={styles.editButtonText}>
-                            {!habit?.frequency || habit?.frequency === 1
-                              ? 'Mark as done'
-                              : `Mark as done (${todaysCompletions} / ${habit?.frequency}) `}
-                          </Text>
-                        </>
-                      )}
-                    </TouchableOpacity>
-                  )}
-                  <View style={styles.moreActionButtons}>
-                    <TouchableOpacity
-                      style={styles.editButton}
-                      onPress={openCalendar}
-                    >
-                      <CalendarDays color="#fff" size={20} />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.editButton}
-                      onPress={handleEdit}
-                    >
-                      <Pencil color="#fff" size={20} />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.editButton}
-                      onPress={handleDelete}
-                    >
-                      <Trash color="#fff" size={20} />
-                    </TouchableOpacity>
-                  </View>
+            <BottomSheet visible onClose={onClose}>
+              <Heatmap habit={habit} />
+              <View style={styles.editButtonContainer}>
+                {(!habit.dataSource ||
+                  habit.dataSource === DataSource.Manual) && (
+                  <TouchableOpacity
+                    style={[
+                      styles.editButton,
+                      {
+                        backgroundColor: getContributionColor(
+                          habit?.color || COLORS_PALETTE.cyan,
+                          todaysCompletions,
+                          habit?.frequency || 1
+                        ),
+                      },
+                    ]}
+                    onPress={handleTodayButtonPress}
+                  >
+                    {isTodayDone ? (
+                      <>
+                        <Circle color="#fff" size={20} />
+                        <Text style={styles.editButtonText}>
+                          Mark as undone
+                        </Text>
+                      </>
+                    ) : (
+                      <>
+                        <CircleCheckBig color="#fff" size={20} />
+                        <Text style={styles.editButtonText}>
+                          {!habit?.frequency || habit?.frequency === 1
+                            ? 'Mark as done'
+                            : `Mark as done (${todaysCompletions} / ${habit?.frequency}) `}
+                        </Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                )}
+                <View style={styles.moreActionButtons}>
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={handleEdit}
+                  >
+                    <Pencil color="#fff" size={16} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={handleDelete}
+                  >
+                    <Trash color="#fff" size={16} />
+                  </TouchableOpacity>
                 </View>
-              </Animated.View>
-            ) : (
-              <DeleteDialog
-                habitName={habit.name}
-                visible={showDeleteDialog}
-                onClose={() => setShowDeleteDialog(false)}
-                onConfirm={handleConfirmDelete}
-              />
-            )}
+              </View>
+              <View style={styles.divider} />
+              <CalendarWrapper habit={habit} />
+            </BottomSheet>
           </BlurView>
         </Pressable>
       </Modal>
 
-      <BottomSheet
-        visible={showCalendarSheet}
-        onClose={() => setShowCalendarSheet(false)}
-      >
-        <CalendarWrapper habit={habit} />
-      </BottomSheet>
+      {showDeleteDialog && (
+        <DeleteDialog
+          habitName={habit.name}
+          visible={showDeleteDialog}
+          onClose={() => setShowDeleteDialog(false)}
+          onConfirm={handleConfirmDelete}
+        />
+      )}
     </>
   );
 }
@@ -222,27 +173,32 @@ const styles = StyleSheet.create({
   },
   editButtonContainer: {
     display: 'flex',
-    width: '100%',
-    gap: 8,
     flexDirection: 'row',
-    position: 'absolute',
+    width: '100%',
+    gap: 16,
     justifyContent: 'space-between',
-    bottom: -50,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
   },
   editButton: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 10,
-    gap: 4,
     borderRadius: 8,
+    gap: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  divider: {
+    height: 1,
+    marginHorizontal: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   moreActionButtons: {
     display: 'flex',
     flexDirection: 'row',
     marginLeft: 'auto',
-    gap: 8,
   },
   editButtonText: {
     color: '#fff',

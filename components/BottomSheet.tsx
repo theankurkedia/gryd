@@ -1,5 +1,12 @@
 import React, { useEffect } from 'react';
-import { Modal, Pressable, StyleSheet, View, Dimensions } from 'react-native';
+import {
+  Modal,
+  Pressable,
+  StyleSheet,
+  View,
+  Dimensions,
+  GestureResponderEvent,
+} from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {
   useAnimatedStyle,
@@ -9,7 +16,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const BOTTOM_SHEET_HEIGHT = SCREEN_HEIGHT * 0.45;
+const BOTTOM_SHEET_HEIGHT = SCREEN_HEIGHT * 0.85;
 
 interface Props {
   visible: boolean;
@@ -35,13 +42,13 @@ export function BottomSheet({ visible, onClose, children }: Props) {
         stiffness: 90,
       });
     }
-  }, [visible]);
+  }, [backdropOpacity, translateY, visible]);
 
   const handleBackdropPress = () => {
     onClose();
   };
 
-  const handleSheetPress = (e: any) => {
+  const handleSheetPress = (e: GestureResponderEvent) => {
     e.stopPropagation();
   };
 
@@ -110,7 +117,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
     paddingTop: 10,
   },
 });
